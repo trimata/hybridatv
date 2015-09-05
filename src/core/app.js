@@ -1,10 +1,10 @@
 /* global define, requirejs */
 
 define([
-  'hybrida/core/domtv',
-  'hybrida/helpers/async',
-  'hybrida/helpers/url',
-  'hybrida/core/hbbtv',
+  'hybridatv/core/domtv',
+  'hybridatv/helpers/async',
+  'hybridatv/helpers/url',
+  //'hybridatv/core/hbbtv',
 ], function($, async, url) {
   'use strict';
 
@@ -229,7 +229,7 @@ define([
             elem = obj;
           }
 
-          $(el).data('$HybridaId', id).data('$instance', obj);
+          $(el).data('$hybridatvId', id).data('$instance', obj);
         });
 
         state[hash] = {
@@ -334,7 +334,7 @@ define([
     App.browse(evt.newURL.split('#')[1]);
   });
 
-  App.helper('Hybrida', {
+  App.helper('hybridatv', {
     $: $,
   });
 

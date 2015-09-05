@@ -1,7 +1,7 @@
 /* globals define */
 
 define([
-  'hybrida/libs/polyfil',
+  'hybridatv/libs/polyfil',
 ], function(polyfil) {
   'use strict';
 

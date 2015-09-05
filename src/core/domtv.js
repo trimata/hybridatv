@@ -2,12 +2,12 @@
 
 /**
  * A DOM wrapper module.
- * @module hybrida/main
- * @exports hybrida/main
+ * @module hybridatv/main
+ * @exports hybridatv/main
  */
 define([
   'sizzle',
-  'hybrida/libs/polyfil',
+  'hybridatv/libs/polyfil',
 ], function(sizzle, polyfil) {
   'use strict';
 

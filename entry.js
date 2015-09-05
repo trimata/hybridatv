@@ -3,7 +3,7 @@
 requirejs.config({
   baseUrl: '.',
   paths: {
-    hybrida: '../hybrida',
+    hybridatv: '../hybridatv',
     components: '../components',
     sizzle: '../bower_components/sizzle/dist/sizzle.min',
   },
