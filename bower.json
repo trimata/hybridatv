@@ -1,0 +1,17 @@
+{
+  "name": "hybridatv",
+  "version": "0.1.0",
+  "main file": "entry.js",
+  "authors": [
+    "Entertainment Communications"
+  ],
+  "description": "the way to hbbtv",
+  "keywords": [
+    "hbbtv"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "requirejs": "~2.1.20",
+    "sizzle": "~2.2.0"
+  }
+}
