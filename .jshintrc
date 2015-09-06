@@ -32,6 +32,8 @@
 
         "console"   : true,
 
+        "module"   : true,
+
         "describe"  : true,
         "expect"    : true,
         "it"        : true

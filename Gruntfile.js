@@ -32,9 +32,20 @@ module.exports = function(grunt) {
 
     },
 
+    jsdoc: {
+      dist: {
+        src: ['src/**/*.js'],
+        options: {
+          destination: 'docs',
+        }
+      }
+    },
+
   });
 
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-jsdoc');
+
   grunt.registerTask('test', ['karma']);
 
   /*
