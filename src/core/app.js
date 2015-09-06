@@ -32,6 +32,25 @@ define([
     }
   }
 
+  function setMask(mask) {
+    var app;
+
+    // for HbbTV 0.5:
+    try {
+      elemcfg.keyset.value = mask;
+    } catch (e) {}
+    try {
+      elemcfg.keyset.setValue(mask);
+    } catch (e) {}
+
+    // for HbbTV 1.0:
+    try {
+      app = document.getElementById('appmgr').getOwnerApplication(document);
+      app.privateData.keyset.setValue(mask);
+      app.privateData.keyset.value = mask;
+    } catch (e) {}
+  }
+
   var App = {
     components: components,
 
@@ -59,6 +78,9 @@ define([
       var mask = 0;
       var len;
       var i;
+      var val;
+
+      value = value || [];
 
       if (typeof value === 'number') {
         mask = value;
@@ -66,34 +88,23 @@ define([
         len = value.length;
 
         for (i = 0; i < len; i++) {
-          mask += maskValues[value[i]];
+          val = maskValues[value[i]];
+          mask += typeof val === 'number' ? val : 0;
         }
       }
 
-      this._setMask(mask);
-
-    },
-
-    _setMask: function(mask) {
-      var app;
-
-      // for HbbTV 0.5:
-      try {
-        elemcfg.keyset.value = mask;
-      } catch (e) {}
-      try {
-        elemcfg.keyset.setValue(mask);
-      } catch (e) {}
-
-      // for HbbTV 1.0:
-      try {
-        app = document.getElementById('appmgr').getOwnerApplication(document);
-        app.privateData.keyset.setValue(mask);
-        app.privateData.keyset.value = mask;
-      } catch (e) {}
+      if (typeof this._setMask === 'function') {
+        this._setMask(mask);
+      } else {
+        setMask(mask);
+      }
 
       return this;
     },
+
+    /* test-code */
+    _setMask: setMask,
+    /* end-test-code */
 
     on: function(evtName, handler) {
       var oldHandler = handlers[evtName];
