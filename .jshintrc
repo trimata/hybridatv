@@ -1,41 +1,46 @@
 {
 
-    "maxerr"        : 50,
+    "maxerr"          : 50,
 
-    "bitwise"       : true,
-    "camelcase"     : false,
-    "curly"         : true,
-    "eqeqeq"        : true,
-    "freeze"        : true,
-    "latedef"       : false,
-    "nonbsp"        : true,
-    "nonew"         : false,
-    "undef"         : true,
-    "unused"        : "strict",
-    "strict"        : true,
-    "maxlen"        : 80,
+    "bitwise"         : true,
+    "camelcase"       : false,
+    "curly"           : true,
+    "eqeqeq"          : true,
+    "freeze"          : true,
+    "latedef"         : false,
+    "nonbsp"          : true,
+    "nonew"           : false,
+    "undef"           : true,
+    "unused"          : "strict",
+    "strict"          : true,
+    "maxlen"          : 80,
 
-    "evil"          : false,
-    "expr"          : false,
-    "funcscope"     : false,
-    "sub"           : false,
-    "supernew"      : false,
-    "validthis"     : false,
+    "evil"            : false,
+    "expr"            : false,
+    "funcscope"       : false,
+    "sub"             : false,
+    "supernew"        : false,
+    "validthis"       : false,
 
-    "browser"       : true,
+    "browser"         : true,
 
-    "globals"       : {
+    "globals"         : {
 
-        "requirejs" : true,
-        "require"   : true,
-        "define"    : true,
+        "requirejs"   : true,
+        "require"     : true,
+        "define"      : true,
 
-        "console"   : true,
+        "console"     : true,
 
-        "module"   : true,
+        "module"      : true,
 
-        "describe"  : true,
-        "expect"    : true,
-        "it"        : true
+        "describe"    : true,
+        "expect"      : true,
+        "afterEach"   : true,
+        "afterAll"    : true,
+        "beforeEach"  : true,
+        "beforeAll"   : true,
+        "spyOn"       : true,
+        "it"          : true
     }
 }

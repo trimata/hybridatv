@@ -1,5 +1,3 @@
-/* global define, requirejs */
-
 define([
   'hybridatv/core/domtv',
   'hybridatv/helpers/async',
@@ -59,7 +57,6 @@ define([
 
     setKeyset: function(value) {
       var mask = 0;
-      var app;
       var len;
       var i;
 
@@ -67,12 +64,18 @@ define([
         mask = value;
       } else {
         len = value.length;
-        if (!len) { return; }
 
         for (i = 0; i < len; i++) {
           mask += maskValues[value[i]];
         }
       }
+
+      this._setMask(mask);
+
+    },
+
+    _setMask: function(mask) {
+      var app;
 
       // for HbbTV 0.5:
       try {
@@ -217,10 +220,10 @@ define([
         var obj;
         var elem;
 
-        elems = $targetContainer.find('.hb-component');
+        elems = $targetContainer.find(config.componentSelector);
 
         elems.each(function(el) {
-          id = el.getAttribute('data-id');
+          id = el.getAttribute(config.dataIdAttr);
           c = cfg.instances[id];
 
           obj = new components[c.type](el, c.params);
@@ -256,7 +259,6 @@ define([
       }
 
       isBack = true;
-      console.log('going back');
 
       history.splice(-step);
       item = history[len - step - 1];
