@@ -3,10 +3,14 @@
 requirejs.config({
   baseUrl: '.',
   paths: {
-    hybridatv: '../hybridatv',
+    hybridatv: '../hybridatv/src',
     components: '../components',
-    sizzle: '../bower_components/sizzle/dist/sizzle.min',
+    sizzle: './bower_components/sizzle/dist/sizzle.min',
   },
 });
 
-requirejs(['main']);
+requirejs([
+  'hybridatv/core/bootstrap',
+  'hybridatv/vendors/analytics',
+  'main',
+]);
