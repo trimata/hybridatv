@@ -41,10 +41,17 @@ module.exports = function(grunt) {
       }
     },
 
+    strip_code: {
+      options: {},
+
+      src: 'dist/**/*.js',
+    },
+
   });
 
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-jsdoc');
+  grunt.loadNpmTasks('grunt-strip-code');
 
   grunt.registerTask('test', ['karma']);
 
