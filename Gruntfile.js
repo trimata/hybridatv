@@ -17,13 +17,24 @@ module.exports = function(grunt) {
         ],
 
         autoWatch: true,
-        reporters: ['dots'],
         reportSlowerThan: 3000,
         logLevel: 'ERROR',
 
         browsers: [
           'PhantomJS',
-        ]
+        ],
+
+        reporters: ['progress', 'coverage'],
+
+        preprocessors: {
+          'src/**/*.js': ['coverage']
+        },
+
+        coverageReporter: {
+          type : 'html',
+          dir : 'coverage/'
+        },
+
       },
 
       unit: {
