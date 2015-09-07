@@ -10,7 +10,14 @@ requirejs.config({
 });
 
 requirejs([
-  'hybridatv/core/bootstrap',
+  'hybridatv/core/hbbtv',
   'hybridatv/vendors/analytics',
-  'main',
-]);
+], function(hbbtv, analytics) {
+  'use strict';
+
+  hbbtv.bootstrap();
+
+  analytics.init();
+});
+
+requirejs(['main']);

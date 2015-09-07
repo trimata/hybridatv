@@ -99,7 +99,5 @@ define([
     },
   };
 
-  analytics.init();
-
-  return null;
+  return analytics;
 });
