@@ -58,21 +58,37 @@ module.exports = function(grunt) {
       src: 'dist/**/*.js',
     },
 
+    clean: {
+      dist: {
+        src: ['dist'],
+      },
+    },
+
+    copy: {
+      dist: {
+        files: [
+          { expand: true, src: ['src/**'], dest: 'dist/', },
+          { expand: true, src: 'entry.js', dest: 'dist/', },
+          { expand: true, src: ['bower_components/**'], dest: 'dist/', },
+        ],
+      },
+    },
+
   });
 
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-strip-code');
-
-  grunt.registerTask('test', ['karma']);
-
-  /*
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+
+  grunt.registerTask('test', ['karma']);
   grunt.registerTask('build', [
-    'clean',
-    'copy',
+    'clean:dist',
+    'copy:dist',
   ]);
+
+  /*
   */
 
 };
