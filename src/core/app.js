@@ -2,7 +2,6 @@ define([
   'hybridatv/core/domtv',
   'hybridatv/helpers/async',
   'hybridatv/helpers/url',
-  //'hybridatv/core/hbbtv',
 ], function($, async, url) {
   'use strict';
 
@@ -14,6 +13,8 @@ define([
   var state = {};
   var history = [];
   var elemcfg = document.getElementById('oipfcfg');
+
+  //hardly ever going to change
   var maskValues = {
     RED: 1,
     GREEN: 2,
@@ -104,6 +105,15 @@ define([
 
     /* test-code */
     _setMask: setMask,
+
+    _resetHandlers: function() {
+      handlers = {};
+    },
+
+    _resetHelpers: function() {
+      helpers = {};
+    },
+
     /* end-test-code */
 
     on: function(evtName, handler) {

@@ -36,6 +36,7 @@
 
         "describe"    : true,
         "expect"      : true,
+        "jasmine"     : true,
         "afterEach"   : true,
         "afterAll"    : true,
         "beforeEach"  : true,
