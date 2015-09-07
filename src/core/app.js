@@ -336,7 +336,7 @@ define([
     App.browse(evt.newURL.split('#')[1]);
   });
 
-  App.helper('hybridatv', {
+  App.helper('Hybridatv', {
     $: $,
   });
 

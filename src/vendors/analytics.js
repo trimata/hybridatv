@@ -63,7 +63,7 @@ define([
     lastSentIndex = len - 1;
 
     async.jsonp(reportsURL + (str.length > 0 ? '?' : '') + str,
-      function(res) {
+    {}, function(res) {
         diffToServerTime = parseInt(res.data, 10) - new Date().getTime();
         events = events.slice(firstIndex);
       }
