@@ -67,6 +67,10 @@ module.exports = function(grunt) {
           replacements: [{
             pattern: /(\/\*\s+)test-code(\s+\*\/)[\s\S]*?\1test-code-end\2/mg,
             replacement: '',
+          },
+          {
+            pattern: /console.+;/g,
+            replacement: '',
           }, ]
         }
       }

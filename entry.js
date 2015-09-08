@@ -5,7 +5,7 @@ requirejs.config({
   paths: {
     hybridatv: '../hybridatv/src',
     components: '../components',
-    sizzle: './bower_components/sizzle/dist/sizzle.min',
+    sizzle: '../hybridatv/bower_components/sizzle/dist/sizzle.min',
   },
 });
 
