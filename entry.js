@@ -5,19 +5,20 @@ requirejs.config({
   paths: {
     hybridatv: '../hybridatv/src',
     components: '../components',
-    sizzle: './bower_components/sizzle/dist/sizzle.min',
+    sizzle: '../hybridatv/bower_components/sizzle/dist/sizzle.min',
   },
 });
 
 requirejs([
   'hybridatv/core/hbbtv',
   'hybridatv/vendors/analytics',
-], function(hbbtv, analytics) {
+  'hybridatv/env',
+], function(hbbtv, analytics, env) {
   'use strict';
 
   hbbtv.bootstrap();
 
-  analytics.init(window.analyticsURL);
+  analytics.init(env.analyticsURL);
 });
 
 requirejs(['main']);

@@ -104,6 +104,7 @@ define([
     },
 
     /* test-code */
+
     _setMask: setMask,
 
     _resetHandlers: function() {
@@ -114,7 +115,7 @@ define([
       helpers = {};
     },
 
-    /* end-test-code */
+    /* test-code-end */
 
     on: function(evtName, handler) {
       var oldHandler = handlers[evtName];
