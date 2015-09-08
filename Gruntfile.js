@@ -52,16 +52,24 @@ module.exports = function(grunt) {
       }
     },
 
-    strip_code: {
-      options: {},
-
-      src: 'dist/**/*.js',
-    },
-
     clean: {
       dist: {
         src: ['dist'],
       },
+    },
+
+    'string-replace': {
+      dist: {
+        files: {
+          'dist/': 'src/**/*.js',
+        },
+        options: {
+          replacements: [{
+            pattern: /(\/\*\s+)test-code(\s+\*\/)([\s\S]*?)\1test-code-end\2/mg,
+            replacement: '',
+          }]
+        }
+      }
     },
 
     copy: {
@@ -78,17 +86,16 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-jsdoc');
-  grunt.loadNpmTasks('grunt-strip-code');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-string-replace');
 
   grunt.registerTask('test', ['karma']);
+
   grunt.registerTask('build', [
     'clean:dist',
     'copy:dist',
+    'string-replace:dist',
   ]);
-
-  /*
-  */
 
 };
