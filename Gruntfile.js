@@ -86,12 +86,23 @@ module.exports = function(grunt) {
       },
     },
 
+    watch: {
+      test: {
+        files: [
+          'test/spec/**/*Spec.js',
+          'src/**/*.js',
+        ],
+        tasks: ['test'],
+      },
+    },
+
   });
 
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-string-replace');
 
   grunt.registerTask('test', ['karma']);
