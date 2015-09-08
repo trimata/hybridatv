@@ -1,5 +1,3 @@
-/* global requirejs */
-
 requirejs.config({
   baseUrl: '.',
   paths: {
@@ -16,9 +14,11 @@ requirejs([
 ], function(hbbtv, analytics, env) {
   'use strict';
 
+  var config = env();
+
   hbbtv.bootstrap();
 
-  analytics.init(env.analyticsURL);
+  analytics.init(config.analyticsURL);
 });
 
 requirejs(['main']);
