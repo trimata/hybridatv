@@ -12,12 +12,13 @@ requirejs.config({
 requirejs([
   'hybridatv/core/hbbtv',
   'hybridatv/vendors/analytics',
-], function(hbbtv, analytics) {
+  'hybridatv/env',
+], function(hbbtv, analytics, env) {
   'use strict';
 
   hbbtv.bootstrap();
 
-  analytics.init(window.analyticsURL);
+  analytics.init(env.analyticsURL);
 });
 
 requirejs(['main']);
