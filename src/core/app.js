@@ -322,11 +322,13 @@ define([
     },
 
     hide: function() {
+      // FIXME hide entire app-container
       $container.hide();
       return this;
     },
 
     show: function() {
+      // FIXME show entire app-container
       $container.show();
       return this;
     },

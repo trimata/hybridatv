@@ -48,6 +48,13 @@ define([
         app.helper('dummy', 42);
         expect(app.helper('dummy')).toBeDefined();
       });
+
+      it('can not redefine helper', function() {
+        app.helper('dummy', 42);
+        app.helper('dummy', 43);
+
+        expect(app.helper('dummy'), 42);
+      });
     });
 
     describe('when setting bitmask', function() {
