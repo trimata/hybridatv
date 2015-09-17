@@ -12,7 +12,7 @@ define([
   var components = {};
   var instance = {};
   var history = [];
-  var $states = {};
+  var states = {};
 
   //hardly ever going to change
   var maskValues = {
@@ -134,7 +134,7 @@ define([
     },
 
     _resetStates: function() {
-      $states = {};
+      states = {};
     },
 
     /* test-code-end */
@@ -167,7 +167,7 @@ define([
       return component;
     },
 
-    $focusComponent: function(component) {
+    focusComponent: function(component) {
       try {
         component.focus();
       }
@@ -175,8 +175,8 @@ define([
       return this;
     },
 
-    $browse: function(hash, done) {
-      this.$get(hash, $container, function($el) {
+    browse: function(hash, done) {
+      this.get(hash, $container, function($el) {
         if (!isBack) {
           history.push(hash);
         } else {
@@ -195,13 +195,13 @@ define([
       });
     },
 
-    $getState: function(hash) {
+    getState: function(hash) {
       hash = hash || window.location.hash;
 
-      return $states[hash];
+      return states[hash];
     },
 
-    $restoreState: function($cnt, state) {
+    restoreState: function($cnt, state) {
       $cnt.html('');
 
       state.elems.each(function(el) {
@@ -211,7 +211,7 @@ define([
       return this;
     },
 
-    $getActiveComponent: function($cnt) {
+    getActiveComponent: function($cnt) {
       var match = $cnt.find(config.activeSelector + ':first');
 
       if (match.s.length) {
@@ -221,7 +221,7 @@ define([
       return null;
     },
 
-    $loadNewContent: function(hash, $cnt, done) {
+    loadNewContent: function(hash, $cnt, done) {
       var self = this;
       var html;
       var cfg;
@@ -265,30 +265,30 @@ define([
         $cnt.html(html);
 
         self.saveState(hash, $cnt, cfg);
-        components = self.$createComponents($cnt, cfg);
+        components = self.createComponents($cnt, cfg);
 
         if (cfg.firstActiveId) {
           firstActiveComponent = components[cfg.firstActiveId];
-          self.$focusComponent(firstActiveComponent);
+          self.focusComponent(firstActiveComponent);
         }
 
         done();
       });
     },
 
-    $get: function(hash, $cnt, done) {
-      var state = this.$getState(hash);
+    get: function(hash, $cnt, done) {
+      var state = this.getState(hash);
       var activeComponent;
 
       if (typeof state !== 'undefined') {
         // cache
-        this.$restoreState($cnt, state);
-        activeComponent = this.$getActiveComponent($cnt);
-        this.$focusComponent(activeComponent);
+        this.restoreState($cnt, state);
+        activeComponent = this.getActiveComponent($cnt);
+        this.focusComponent(activeComponent);
 
         finish();
       } else {
-        this.$loadNewContent(hash, $cnt, finish);
+        this.loadNewContent(hash, $cnt, finish);
       }
       function finish() {
         if (typeof done === 'function') {
@@ -297,7 +297,7 @@ define([
       }
     },
 
-    $createComponents: function($cnt, cfg) {
+    createComponents: function($cnt, cfg) {
       var data = {};
       var id;
       var elems;
@@ -321,7 +321,7 @@ define([
     },
 
     saveState: function(hash, $cnt, cfg) {
-      $states[hash] = {
+      states[hash] = {
         config: cfg,
         elem: $cnt,
       };
@@ -436,7 +436,7 @@ define([
       trigger('tmpChange', data);
     }
 
-    App.$browse(evt.newURL.split('#')[1]);
+    App.browse(evt.newURL.split('#')[1]);
   });
 
   App.helper('Hybridatv', {

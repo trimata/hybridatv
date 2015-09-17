@@ -77,13 +77,13 @@ define([
       });
 
       it('has empty state by default', function() {
-        expect(app.$getState()).not.toBeDefined();
+        expect(app.getState()).not.toBeDefined();
       });
 
       it('saves a state', function() {
         app.saveState('main', $container, config);
 
-        expect(app.$getState('main')).toEqual(jasmine.objectContaining({
+        expect(app.getState('main')).toEqual(jasmine.objectContaining({
           elem: $container,
           config: config,
         }));
@@ -94,7 +94,7 @@ define([
           .saveState('main', $container, config)
           .saveState('main', $container, null);
 
-        expect(app.$getState('main')).toEqual(jasmine.objectContaining({
+        expect(app.getState('main')).toEqual(jasmine.objectContaining({
           elem: $container,
           config: null,
         }));
@@ -106,17 +106,17 @@ define([
         });
 
         it('tries to restore the state if available', function() {
-          spyOn(app, '$restoreState');
+          spyOn(app, 'restoreState');
 
-          app.$get('main', $container);
-          expect(app.$restoreState).toHaveBeenCalled();
+          app.get('main', $container);
+          expect(app.restoreState).toHaveBeenCalled();
         });
 
         it('loads new content if no state', function() {
-          spyOn(app, '$loadNewContent');
+          spyOn(app, 'loadNewContent');
 
-          app.$get('other', $container);
-          expect(app.$loadNewContent).toHaveBeenCalled();
+          app.get('other', $container);
+          expect(app.loadNewContent).toHaveBeenCalled();
         });
       });
     });
