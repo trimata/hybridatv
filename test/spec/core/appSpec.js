@@ -3,13 +3,18 @@ define([
 ], function(app) {
   'use strict';
 
-  document.body.innerHTML = '<div id="app-test"><div id="app"></div></div>';
+  document.body.innerHTML = '<div id="app-test"><div id="app">' +
+  '<div id="app-container"></div></div></div>';
 
   describe('App', function() {
     var appContainer;
+    var $;
+    var $container;
 
     beforeAll(function() {
       appContainer = document.getElementById('app-test');
+      $ = app.helper('Hybridatv').$;
+      $container = $(document.getElementById('app-container'));
     });
 
     afterAll(function() {
@@ -32,6 +37,56 @@ define([
         expect(spy).toHaveBeenCalled();
       });
 
+      it('triggers multiple events', function() {
+        var spy2 = jasmine.createSpy();
+
+        app
+          .on('beforeRun', spy)
+          .on('beforeRun', spy2)
+          .run();
+
+        expect(spy).toHaveBeenCalled();
+        expect(spy2).toHaveBeenCalled();
+      });
+
+    });
+
+    describe('when requesting new hash', function() {
+
+
+    });
+
+    describe('states', function() {
+      afterEach(function() {
+        app.states = {};
+      });
+
+      it('has empty state by default', function() {
+        expect(app.$getState()).not.toBeDefined();
+      });
+
+      it('saves a state', function() {
+        app.saveState('main', $container);
+
+        expect(app.states.main).toBeDefined();
+      });
+    });
+
+    describe('history data', function() {
+      afterEach(function() {
+        app._resetHistory();
+      });
+
+      it('is empty when initialized', function() {
+        expect(app.getHistory()).toEqual([]);
+      });
+
+      /*
+      xit('spec message', function() {
+        app._updateContent();
+        expect();
+      });
+      */
     });
 
     describe('when dealing with helpers', function() {

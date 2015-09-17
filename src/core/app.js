@@ -5,14 +5,15 @@ define([
 ], function($, async, url) {
   'use strict';
 
-  var config = {};
+  var elemcfg = document.getElementById('oipfcfg');
+  var appmgr = document.getElementById('appmgr');
   var handlers = {};
   var helpers = {};
   var components = {};
   var instance = {};
   var state = {};
   var history = [];
-  var elemcfg = document.getElementById('oipfcfg');
+  var $state = {};
 
   //hardly ever going to change
   var maskValues = {
@@ -24,6 +25,24 @@ define([
     VCR: 32,
     NUMERIC: 256,
   };
+
+  var config = {
+    defaultHash: 'home',
+    container: undefined,
+
+    template: {
+      dir: '',
+      ext: '.html',
+    },
+
+    component: {
+      selector: '.hb-component',
+      activeSelector: '.active',
+      dataIdAttr: 'data-id',
+    },
+
+  };
+
   var isBack = false;
   var $container;
 
@@ -46,7 +65,7 @@ define([
 
     // for HbbTV 1.0:
     try {
-      app = document.getElementById('appmgr').getOwnerApplication(document);
+      app = appmgr.getOwnerApplication(document);
       app.privateData.keyset.setValue(mask);
       app.privateData.keyset.value = mask;
     } catch (e) {}
@@ -65,9 +84,12 @@ define([
       }
 
       $container = $(config.container);
+
       if (!$container.s.length) {
-        console.error('CONTAINER_NOT_FOUND');
-        return false;
+        throw {
+          message: 'Unable to find container in DOM',
+          name: 'InputError',
+        };
       }
 
       return this;
@@ -109,6 +131,10 @@ define([
 
     _resetHandlers: function() {
       handlers = {};
+    },
+
+    _resetHistory: function() {
+      history = [];
     },
 
     _resetHelpers: function() {
@@ -162,6 +188,185 @@ define([
       });
 
     },
+
+    component: function(name, item) {
+      var component = components[name];
+
+      if (typeof component === 'undefined') {
+        components[name] = item;
+        return this;
+      }
+
+      return component;
+    },
+
+    /*
+     * START beta
+    */
+
+    $focusComponent: function(component) {
+      try {
+        component.focus();
+      }
+      catch (e) {}
+      return this;
+    },
+
+    $browse: function(hash, done) {
+      this.$get(hash, $container, function($el) {
+        if (!isBack) {
+          history.push(hash);
+        } else {
+          isBack = false;
+        }
+
+        trigger('tmpReady', {
+          hash: hash,
+          tmp: url.parseHash(hash).tmp,
+          container: $el,
+        });
+
+        if (typeof done === 'function') {
+          done($el);
+        }
+      });
+
+    },
+
+    $getState: function(hash) {
+      hash = hash || window.location.hash;
+
+      return $state[hash];
+    },
+
+    $restoreState: function($cnt, state) {
+      $cnt.html('');
+
+      state.elems.each(function(el) {
+        $cnt.s[0].appendChild(el);
+      });
+
+      return this;
+    },
+
+    $getActiveComponent: function($cnt) {
+      var match = $cnt.find(config.activeSelector + ':first');
+
+      if (match.s.length) {
+        return match.instance();
+      }
+
+      return null;
+    },
+
+    $get: function(hash, $cnt, done) {
+      var state = this.$getState(hash);
+      var hashData = url.parseHash(hash);
+      var self = this;
+      var activeComponent;
+      var html;
+      var cfg;
+
+      if (typeof state !== 'undefined') {
+        // cache
+        this.$restoreState($cnt, state);
+        activeComponent = this.$getActiveComponent($cnt);
+        this.$focusComponent(activeComponent);
+
+        broadcastReady();
+      } else {
+        async.parallel([
+          function getTemplate(over) {
+            async.get(config.template.dir + hashData.tmp + '/view' +
+            config.templates.ext, {}, function(res) {
+              html = res;
+              over();
+            });
+          },
+          function getConfig(over) {
+            async.get(config.template.dir + hashData.tmp + '/data.json',
+            {}, function(res) {
+              cfg = JSON.parse(res);
+
+              requirejs(cfg.dependencies, function() {
+                var len = arguments.length;
+                var i;
+                var item;
+                var className;
+
+                for (i = 0; i < len; i++) {
+                  item = arguments[i];
+
+                  className = item.prototype.type;
+
+                  self.component(className, item);
+                }
+
+                over();
+              });
+            });
+          }
+        ], function contentLoaded() {
+          var components;
+          var firstActiveComponent;
+
+          $cnt.html(html);
+
+          self.saveState(hash, $cnt, cfg);
+          components = self.$createComponents($cnt, cfg);
+
+          if (cfg.firstActiveId) {
+            firstActiveComponent = components[cfg.firstActiveId];
+            self.$focusComponent(firstActiveComponent);
+          }
+
+          broadcastReady();
+        });
+      }
+
+      function broadcastReady() {
+        if (typeof done === 'function') {
+          done();
+        }
+      }
+    },
+
+    $createComponents: function($cnt, cfg) {
+      var data = {};
+      var id;
+      var elems;
+      var c;
+      var obj;
+
+      elems = $cnt.find(config.component.selector);
+
+      elems.each(function(el) {
+        id = el.getAttribute(config.component.dataIdAttr);
+        c = cfg.instances[id];
+
+        obj = new components[c.type](el, c.params);
+
+        data[id] = obj;
+
+        $(el).data('$hybridatvId', id).data('$instance', obj);
+      });
+
+      return data;
+    },
+
+    saveState: function(hash, $cnt, cfg) {
+      this.states[hash] = {
+        config: cfg,
+        elems: $cnt.children(),
+      };
+
+      return this;
+    },
+
+
+    /*
+     * END beta
+    */
 
     get: function(hash, container, done) {
       var tmp = url.parseHash(hash).tmp;
@@ -302,7 +507,7 @@ define([
         hash = window.location.hash;
         window.location.hash = '';
       } else {
-        hash = url.buildHash(config.homePage, {});
+        hash = url.buildHash(config.defaultHash, {});
       }
 
       window.location.hash = hash;
