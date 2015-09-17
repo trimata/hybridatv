@@ -11,9 +11,8 @@ define([
   var helpers = {};
   var components = {};
   var instance = {};
-  var state = {};
   var history = [];
-  var $state = {};
+  var $states = {};
 
   //hardly ever going to change
   var maskValues = {
@@ -26,22 +25,26 @@ define([
     NUMERIC: 256,
   };
 
-  var config = {
-    defaultHash: 'home',
-    container: undefined,
+  var config = {};
 
-    template: {
-      dir: '',
-      ext: '.html',
-    },
+  function resetConfig() {
+    config = {
+      defaultHash: 'home',
+      container: undefined,
 
-    component: {
-      selector: '.hb-component',
-      activeSelector: '.active',
-      dataIdAttr: 'data-id',
-    },
+      template: {
+        dir: '',
+        ext: '.html',
+      },
 
-  };
+      component: {
+        selector: '.hb-component',
+        activeSelector: '.active',
+        dataIdAttr: 'data-id',
+      },
+
+    };
+  }
 
   var isBack = false;
   var $container;
@@ -72,10 +75,6 @@ define([
   }
 
   var App = {
-    components: components,
-
-    state: state,
-
     setConfig: function(data) {
       var prop;
 
@@ -83,19 +82,8 @@ define([
         config[prop] = data[prop];
       }
 
-      $container = $(config.container);
-
-      if (!$container.s.length) {
-        throw {
-          message: 'Unable to find container in DOM',
-          name: 'InputError',
-        };
-      }
-
       return this;
     },
-
-    config: config,
 
     setKeyset: function(value) {
       var mask = 0;
@@ -116,16 +104,20 @@ define([
         }
       }
 
-      if (typeof this._setMask === 'function') {
-        this._setMask(mask);
-      } else {
-        setMask(mask);
-      }
+      setMask(mask);
+
+      /* test-code */
+
+      this._setMask(mask);
+
+      /* test-code-end */
 
       return this;
     },
 
     /* test-code */
+
+    _resetConfig: resetConfig,
 
     _setMask: setMask,
 
@@ -139,6 +131,10 @@ define([
 
     _resetHelpers: function() {
       helpers = {};
+    },
+
+    _resetStates: function() {
+      $states = {};
     },
 
     /* test-code-end */
@@ -160,35 +156,6 @@ define([
       return this;
     },
 
-    getState: function(hash) {
-      if (typeof hash !== 'string') {
-        return state[window.location.hash];
-      }
-
-      return state[hash];
-    },
-
-    browse: function(hash, done) {
-      this.get(hash, $container, function($el) {
-        if (!isBack) {
-          history.push(hash);
-        } else {
-          isBack = false;
-        }
-
-        trigger('tmpReady', {
-          hash: hash,
-          tmp: url.parseHash(hash).tmp,
-          container: $el,
-        });
-
-        if (typeof done === 'function') {
-          done($el);
-        }
-      });
-
-    },
-
     component: function(name, item) {
       var component = components[name];
 
@@ -199,10 +166,6 @@ define([
 
       return component;
     },
-
-    /*
-     * START beta
-    */
 
     $focusComponent: function(component) {
       try {
@@ -230,13 +193,12 @@ define([
           done($el);
         }
       });
-
     },
 
     $getState: function(hash) {
       hash = hash || window.location.hash;
 
-      return $state[hash];
+      return $states[hash];
     },
 
     $restoreState: function($cnt, state) {
@@ -259,13 +221,64 @@ define([
       return null;
     },
 
-    $get: function(hash, $cnt, done) {
-      var state = this.$getState(hash);
-      var hashData = url.parseHash(hash);
+    $loadNewContent: function(hash, $cnt, done) {
       var self = this;
-      var activeComponent;
       var html;
       var cfg;
+
+      async.parallel([
+        function getTemplate(over) {
+          async.get(config.template.dir + hash + '/view' +
+          config.template.ext, {}, function(res) {
+            html = res;
+            over();
+          });
+        },
+        function getConfig(over) {
+          async.get(config.template.dir + hash + '/data.json',
+          {}, function(res) {
+            cfg = JSON.parse(res);
+
+            requirejs(cfg.dependencies, function() {
+              var len = arguments.length;
+              var i;
+              var item;
+              var className;
+
+              for (i = 0; i < len; i++) {
+                item = arguments[i];
+
+                className = item.prototype.type;
+
+                self.component(className, item);
+              }
+
+              over();
+            });
+          });
+        }
+      ],
+      function contentLoaded() {
+        var components;
+        var firstActiveComponent;
+
+        $cnt.html(html);
+
+        self.saveState(hash, $cnt, cfg);
+        components = self.$createComponents($cnt, cfg);
+
+        if (cfg.firstActiveId) {
+          firstActiveComponent = components[cfg.firstActiveId];
+          self.$focusComponent(firstActiveComponent);
+        }
+
+        done();
+      });
+    },
+
+    $get: function(hash, $cnt, done) {
+      var state = this.$getState(hash);
+      var activeComponent;
 
       if (typeof state !== 'undefined') {
         // cache
@@ -273,58 +286,11 @@ define([
         activeComponent = this.$getActiveComponent($cnt);
         this.$focusComponent(activeComponent);
 
-        broadcastReady();
+        finish();
       } else {
-        async.parallel([
-          function getTemplate(over) {
-            async.get(config.template.dir + hashData.tmp + '/view' +
-            config.templates.ext, {}, function(res) {
-              html = res;
-              over();
-            });
-          },
-          function getConfig(over) {
-            async.get(config.template.dir + hashData.tmp + '/data.json',
-            {}, function(res) {
-              cfg = JSON.parse(res);
-
-              requirejs(cfg.dependencies, function() {
-                var len = arguments.length;
-                var i;
-                var item;
-                var className;
-
-                for (i = 0; i < len; i++) {
-                  item = arguments[i];
-
-                  className = item.prototype.type;
-
-                  self.component(className, item);
-                }
-
-                over();
-              });
-            });
-          }
-        ], function contentLoaded() {
-          var components;
-          var firstActiveComponent;
-
-          $cnt.html(html);
-
-          self.saveState(hash, $cnt, cfg);
-          components = self.$createComponents($cnt, cfg);
-
-          if (cfg.firstActiveId) {
-            firstActiveComponent = components[cfg.firstActiveId];
-            self.$focusComponent(firstActiveComponent);
-          }
-
-          broadcastReady();
-        });
+        this.$loadNewContent(hash, $cnt, finish);
       }
-
-      function broadcastReady() {
+      function finish() {
         if (typeof done === 'function') {
           done();
         }
@@ -355,121 +321,14 @@ define([
     },
 
     saveState: function(hash, $cnt, cfg) {
-      this.states[hash] = {
+      $states[hash] = {
         config: cfg,
-        elems: $cnt.children(),
+        elem: $cnt,
       };
 
       return this;
     },
 
-
-    /*
-     * END beta
-    */
-
-    get: function(hash, container, done) {
-      var tmp = url.parseHash(hash).tmp;
-      var $targetContainer = $(container);
-      var currentState = this.getState(hash);
-      var cfg;
-      var html;
-
-      if (typeof currentState !== 'undefined') {
-        updateContent(true);
-      } else {
-        async.parallel([getTmp, getConfig], updateContent);
-      }
-
-      function getTmp(over) {
-        async.get(config.templatesDir + tmp + '/view' + config.templatesExt,
-        {}, function(res) {
-          html = res;
-          over();
-        });
-      }
-
-      function getConfig(over) {
-        async.get(config.templatesDir + tmp + '/data.json', {}, function(res) {
-          cfg = JSON.parse(res);
-
-          requirejs(cfg.dependencies, function() {
-            var len = arguments.length;
-            var i;
-            var item;
-            var className;
-
-            for (i = 0; i < len; i++) {
-              item = arguments[i];
-
-              className = item.prototype.type;
-
-              if (typeof components[className] === 'undefined') {
-                components[className] = item;
-              }
-            }
-
-            over();
-          });
-        });
-      }
-
-      function updateContent(cached) {
-        var match;
-
-        if (cached) {
-          $targetContainer.html('');
-
-          currentState.elems.each(function(el) {
-            $targetContainer.s[0].appendChild(el);
-          });
-
-          match = $targetContainer.find('.active:first');
-
-          if (match.s.length) {
-            match.instance().focus();
-          }
-
-        } else {
-          $targetContainer.html(html);
-          initNewContent();
-        }
-
-        if (typeof done === 'function') {
-          done($targetContainer);
-        }
-      }
-
-      function initNewContent() {
-        var id;
-        var elems;
-        var c;
-        var obj;
-        var elem;
-
-        elems = $targetContainer.find(config.componentSelector);
-
-        elems.each(function(el) {
-          id = el.getAttribute(config.dataIdAttr);
-          c = cfg.instances[id];
-
-          obj = new components[c.type](el, c.params);
-
-          if (cfg.firstActiveId && cfg.firstActiveId === id.toString()) {
-            elem = obj;
-          }
-
-          $(el).data('$hybridatvId', id).data('$instance', obj);
-        });
-
-        state[hash] = {
-          config: cfg,
-          elems: $targetContainer.children(),
-        };
-
-        if (elem) { elem.focus(); }
-      }
-    },
 
     getHistory: function() {
       return history;
@@ -498,10 +357,25 @@ define([
       return instance[id];
     },
 
+    getConfig: function() {
+      return config;
+    },
+
     run: function() {
       var hash;
 
       trigger('beforeRun');
+
+      $container = $(config.container);
+
+      /*
+      if (!$container.s.length) {
+        throw {
+          message: 'Unable to find container in DOM',
+          name: 'InputError',
+        };
+      }
+      */
 
       if (window.location.hash) {
         hash = window.location.hash;
@@ -562,12 +436,14 @@ define([
       trigger('tmpChange', data);
     }
 
-    App.browse(evt.newURL.split('#')[1]);
+    App.$browse(evt.newURL.split('#')[1]);
   });
 
   App.helper('Hybridatv', {
     $: $,
   });
+
+  resetConfig();
 
   return App;
 });

@@ -51,14 +51,29 @@ define([
 
     });
 
-    describe('when requesting new hash', function() {
+    describe('configuration', function() {
+      beforeEach(function() {
+        app._resetConfig();
+      });
 
+      it('sets options', function() {
+        app.setConfig({
+          a: 42,
+        });
+
+        expect(app.getConfig().a).toEqual(42);
+      });
+
+      it('throws error if container does not exist', function() {
+      });
 
     });
 
     describe('states', function() {
+      var config = {};
+
       afterEach(function() {
-        app.states = {};
+        app._resetStates();
       });
 
       it('has empty state by default', function() {
@@ -66,9 +81,43 @@ define([
       });
 
       it('saves a state', function() {
-        app.saveState('main', $container);
+        app.saveState('main', $container, config);
 
-        expect(app.states.main).toBeDefined();
+        expect(app.$getState('main')).toEqual(jasmine.objectContaining({
+          elem: $container,
+          config: config,
+        }));
+      });
+
+      it('overwrites state', function() {
+        app
+          .saveState('main', $container, config)
+          .saveState('main', $container, null);
+
+        expect(app.$getState('main')).toEqual(jasmine.objectContaining({
+          elem: $container,
+          config: null,
+        }));
+      });
+
+      describe('when requesting a view', function() {
+        beforeEach(function() {
+          app.saveState('main', $container);
+        });
+
+        it('tries to restore the state if available', function() {
+          spyOn(app, '$restoreState');
+
+          app.$get('main', $container);
+          expect(app.$restoreState).toHaveBeenCalled();
+        });
+
+        it('loads new content if no state', function() {
+          spyOn(app, '$loadNewContent');
+
+          app.$get('other', $container);
+          expect(app.$loadNewContent).toHaveBeenCalled();
+        });
       });
     });
 
