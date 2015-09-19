@@ -1,10 +1,9 @@
-define([
-], function() {
+define(function() {
   'use strict';
 
-  function initMedia() {
-    var media = document.getElementById('media-player');
+  var media = document.getElementById('media-player');
 
+  function initMedia() {
     try {
       media.bindToCurrentChannel();
     } catch (e) {}
@@ -23,27 +22,17 @@ define([
   }
 
   function getCurrentChannel() {
-    var objs = document.getElementsByTagName('object');
-    var videoPlayer;
-    var i;
-
-    for (i=0; i < objs.length; i++){
-      if(objs[i].type === 'video/broadcast') {
-        videoPlayer = objs[i];
-        break;
-      }
-    }
-    if (videoPlayer && videoPlayer.currentChannel !== undefined &&
-    videoPlayer.currentChannel) {
+    if (media && media.currentChannel !== undefined &&
+    media.currentChannel) {
       return {
-        'Tvservice[onid]': videoPlayer.currentChannel.onid,
-        'Tvservice[tsid]': videoPlayer.currentChannel.tsid,
-        'Tvservice[sid]': videoPlayer.currentChannel.sid,
-        'Tvservice[name]': videoPlayer.currentChannel.name,
-        'Tvservice[longname]': videoPlayer.currentChannel.longname,
+        'Tvservice[onid]': media.currentChannel.onid,
+        'Tvservice[tsid]': media.currentChannel.tsid,
+        'Tvservice[sid]': media.currentChannel.sid,
+        'Tvservice[name]': media.currentChannel.name,
+        'Tvservice[longname]': media.currentChannel.longname,
         'Tvservice[tvchannel_type_id]': typeof
-        videoPlayer.currentChannel.channelType === 'undefined' ? 0
-        : videoPlayer.currentChannel.channelType
+        media.currentChannel.channelType === 'undefined' ? 0
+        : media.currentChannel.channelType
       };
     }
     return {};
