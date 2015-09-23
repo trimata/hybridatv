@@ -10,11 +10,10 @@ requirejs.config({
 requirejs([
   'hybridatv/core/hbbtv',
   'hybridatv/vendors/analytics',
-  'hybridatv/env',
-], function(hbbtv, analytics, env) {
+], function(hbbtv, analytics) {
   'use strict';
 
-  var config = env();
+  var config = window.HYBRIDATV_ENV();
 
   hbbtv.bootstrap();
 
