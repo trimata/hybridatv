@@ -10,7 +10,6 @@ define([
   var eventsMaxSize = 1073741824;
   var events = [];
   var ts = new Date().getTime();
-  var isURLValid = true;
   var diffToServerTime;
   var reportsURL;
   var analytics;
@@ -48,15 +47,15 @@ define([
     return size;
   }
 
+  function verifyURL(url, success, error) {
+    async.get(url, {}, success, error);
+  }
+
   function send() {
     var len = events.length;
     var firstIndex = lastSentIndex + 1;
-    var i;
     var str = '';
-
-    if (!isURLValid) {
-      return;
-    }
+    var i;
 
     for (i = firstIndex; i < len; i++) {
       if (str !== '') {
@@ -71,10 +70,6 @@ define([
     {}, function(res) {
         diffToServerTime = parseInt(res.data, 10) - new Date().getTime();
         events = events.slice(firstIndex);
-      }, function(error) {
-        if (error.status === 404) {
-          isURLValid = false;
-        }
       }
     );
 
@@ -85,12 +80,11 @@ define([
 
   analytics = {
     init: function(url) {
-      if (!hasCalledInit) {
+      verifyURL(url, function() {
         reportsURL = url;
-
-        send();
         hasCalledInit = true;
-      }
+        send();
+      });
     },
 
     ts: ts,
