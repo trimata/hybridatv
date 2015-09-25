@@ -26,7 +26,8 @@ define([], function() {
       hasClass: elem.classList ? function(el, className) {
         return el.classList.contains(className);
       } : function (el, className) {
-        return new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
+        return new RegExp('(^| )' + className +
+          '( |$)', 'gi').test(el.className);
       },
       /**
        * A method in first level, just for test
@@ -44,7 +45,7 @@ define([], function() {
       /**
        * @method initCustomEvent
        * @param {String} eventName Name of the event
-       * @param {Object} params Parameters of the event. See {@link https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent.CustomEvent}
+       * @param {Object} params Parameters of the event.
        */
       initCustomEvent: !!window.CustomEvent ? function(evtName) {
         return new CustomEvent(evtName, {});
@@ -59,7 +60,7 @@ define([], function() {
        */
       stopBubble: function(evt) {
         evt = evt || window.event;
-        if (evt.stopPropagation) {
+        if (typeof evt.stopPropagation === 'function') {
           evt.stopPropagation();
         } else {
           evt.cancelBubble = true;

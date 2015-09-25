@@ -1,4 +1,6 @@
-define(function() {
+define([
+  'hybridatv/libs/polyfil',
+], function(polyfil) {
   'use strict';
 
   var uniqueId = 0;
@@ -12,7 +14,7 @@ define(function() {
 
     for (prop in params) {
       el = params[prop];
-      if (el.constructor === Array) {
+      if (polyfil.isArray(el)) {
         len = el.length;
         for (i = 0; i < len; i++) {
           queryString += prop + '[]=' + el[i] + '&';
@@ -85,7 +87,8 @@ define(function() {
       queryString = buildQueryString(params);
 
       script.type = 'text/javascript';
-      script.src = url + '?' + queryString;
+      script.src = url +
+        url.indexOf('?') > -1 ? '&' : '?' + queryString;
 
       window[name] = function(data) {
         callback.call((context || window), data);
