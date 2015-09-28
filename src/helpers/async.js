@@ -4,6 +4,7 @@ define([
   'use strict';
 
   var uniqueId = 0;
+  var voidFn = function() {};
 
   function buildQueryString(params) {
     var queryString = '';
@@ -83,12 +84,14 @@ define([
       var head = document.getElementsByTagName('head')[0];
       var queryString;
 
+      callback = callback || voidFn;
+
       params.callback = name;
       queryString = buildQueryString(params);
 
       script.type = 'text/javascript';
       script.src = url +
-        url.indexOf('?') > -1 ? '&' : '?' + queryString;
+        (url.indexOf('?') > -1 ? '&' : '?') + queryString;
 
       window[name] = function(data) {
         callback.call((context || window), data);

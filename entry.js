@@ -17,7 +17,8 @@ requirejs([
 
   hbbtv.bootstrap();
 
-  analytics.init(config.analyticsURL);
+  console.log(config.url.analytics);
+  analytics.init(config.url.analytics);
 });
 
 requirejs(['main']);

@@ -61,7 +61,7 @@ module.exports = function(grunt) {
     'string-replace': {
       dist: {
         files: {
-          'dist/': 'src/**/*.js',
+          'dist/entry.js': 'dist/built.js',
         },
         options: {
           replacements: [{
@@ -76,16 +76,6 @@ module.exports = function(grunt) {
       }
     },
 
-    copy: {
-      dist: {
-        files: [
-          { expand: true, src: ['src/**'], dest: 'dist/', },
-          { expand: true, src: 'entry.js', dest: 'dist/', },
-          { expand: true, src: ['bower_components/**'], dest: 'dist/', },
-        ],
-      },
-    },
-
     watch: {
       test: {
         files: [
@@ -96,20 +86,36 @@ module.exports = function(grunt) {
       },
     },
 
+    concat: {
+      options: {
+        //separator: ';',
+      },
+
+      dist: {
+        src: [
+          'bower_components/sizzle/**/*.min.js',
+          'src/**/*.js',
+          'entry.js',
+        ],
+
+        dest: 'dist/built.js',
+      },
+  },
+
   });
 
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-string-replace');
+  grunt.loadNpmTasks('grunt-contrib-concat');
 
   grunt.registerTask('test', ['karma']);
 
   grunt.registerTask('build', [
     'clean:dist',
-    'copy:dist',
+    'concat:dist',
     'string-replace:dist',
   ]);
 
