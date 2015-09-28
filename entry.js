@@ -1,24 +1,33 @@
-requirejs.config({
-  baseUrl: '.',
-  paths: {
-    hybridatv: '../hybridatv/src',
-    components: '../components',
-    sizzle: '../hybridatv/bower_components/sizzle/dist/sizzle.min',
-  },
-});
-
-requirejs([
-  'hybridatv/core/hbbtv',
-  'hybridatv/vendors/analytics',
-], function(hbbtv, analytics) {
+;(function() {
   'use strict';
 
-  var config = window.HYBRIDATV_ENV();
+  var paths = {
+    hybridatv: '../hybridatv/src',
+    components: '../components',
+    sizzle: '../hybridatv/src/libs/sizzle.min',
+  };
 
-  hbbtv.bootstrap();
+  /* test-code */
+  paths.sizzle = '../hybridatv/bower_components/' +
+    'sizzle/dist/sizzle.min';
+  /* test-code-end */
 
-  console.log(config.url.analytics);
-  analytics.init(config.url.analytics);
-});
+  requirejs.config({
+    baseUrl: '.',
+    paths: paths,
+  });
 
-requirejs(['main']);
+  requirejs([
+    'hybridatv/core/hbbtv',
+    'hybridatv/vendors/analytics',
+  ], function(hbbtv, analytics) {
+    var config = window.HYBRIDATV_ENV();
+
+    hbbtv.bootstrap();
+
+    console.log(config.url.analytics);
+    analytics.init(config.url.analytics);
+  });
+
+  requirejs(['main']);
+})();

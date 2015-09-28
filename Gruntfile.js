@@ -10,7 +10,6 @@ module.exports = function(grunt) {
         files: [
           { pattern: 'src/**/*.js', included: false },
           { pattern: 'test/spec/**/*.js', included: false },
-          { pattern: 'bower_components/requirejs/**/*.js', included: false },
           { pattern: 'bower_components/sizzle/**/*.js', included: false },
 
           'test/config.js'
@@ -61,15 +60,16 @@ module.exports = function(grunt) {
     'string-replace': {
       dist: {
         files: {
-          'dist/entry.js': 'dist/built.js',
+          'dist/': ['src/**/*.js', 'entry.js'],
         },
         options: {
           replacements: [{
-            pattern: /(\/\*\s+)test-code(\s+\*\/)[\s\S]*?\1test-code-end\2/mg,
+            pattern: new RegExp('\\n?(\/\\*\\s+)test-code(\\s+\\*\\/)' +
+              '[\\s\\S]*?\\1test-code-end\\2', 'mg'),
             replacement: '',
           },
           {
-            pattern: /console.+;/g,
+            pattern: /\n?\s*console.+/g,
             replacement: '',
           }, ]
         }
@@ -86,37 +86,34 @@ module.exports = function(grunt) {
       },
     },
 
-    concat: {
-      options: {
-        //separator: ';',
-      },
-
-      dist: {
-        src: [
-          'bower_components/sizzle/**/*.min.js',
-          'src/**/*.js',
-          'entry.js',
+    copy: {
+      libs: {
+        files: [
+         {
+           flatten: true,
+           expand: true,
+           src: ['bower_components/sizzle/**/*.min.js'],
+           dest: 'dist/src/libs/',
+         },
         ],
-
-        dest: 'dist/built.js',
-      },
-  },
+       },
+     },
 
   });
 
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-string-replace');
-  grunt.loadNpmTasks('grunt-contrib-concat');
 
   grunt.registerTask('test', ['karma']);
 
   grunt.registerTask('build', [
     'clean:dist',
-    'concat:dist',
     'string-replace:dist',
+    'copy',
   ]);
 
 };

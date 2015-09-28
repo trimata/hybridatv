@@ -6,9 +6,9 @@
  * @exports hybridatv/main
  */
 define([
-  'sizzle',
   'hybridatv/libs/polyfil',
-], function(sizzle, polyfil) {
+  'sizzle',
+], function(polyfil, sizzle) {
   'use strict';
 
   var fn = {};
