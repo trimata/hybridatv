@@ -7,7 +7,7 @@
  */
 define([
   'hybridatv/libs/polyfil',
-  'sizzle',
+  'hybridatv/libs/sizzle.min',
 ], function(polyfil, sizzle) {
   'use strict';
 

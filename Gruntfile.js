@@ -2,7 +2,6 @@ module.exports = function(grunt) {
   'use strict';
 
   var data = {};
-  var libConfig = {};
   var newVersion = '';
 
   grunt.initConfig({
@@ -90,7 +89,13 @@ module.exports = function(grunt) {
 
     copy: {
       libs: {
-        files: [ libConfig ],
+        files: [
+        {
+          flatten: true,
+          expand: true,
+          src: ['bower_components/sizzle/**/*.min.js'],
+          dest: 'src/libs/',
+        }],
        },
      },
 
@@ -111,6 +116,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-version');
 
   grunt.registerTask('test', ['karma']);
+
+  grunt.registerTask('install', function() {
+    grunt.task([
+      'copy:libs',
+    ]);
+
+  });
 
   grunt.registerTask('build', function(arg) {
     var version = grunt.file.readJSON('package.json').version.split('.');
@@ -136,16 +148,9 @@ module.exports = function(grunt) {
       'src/**/*.js', 'entry.js',
     ];
 
-    libConfig = {
-      flatten: true,
-      expand: true,
-      src: ['bower_components/sizzle/**/*.min.js'],
-      dest: 'dist/' + newVersion + '/src/libs/',
-    };
 
     grunt.task.run([
       'string-replace:dist',
-      'copy:libs',
       'version::' + arg,
     ]);
 
