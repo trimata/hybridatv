@@ -3,7 +3,7 @@
 ### Installation
 
 ```shell
-npm install && bower install && grunt build
+npm install && bower install && grunt install
 ```
 
 ### Test task
