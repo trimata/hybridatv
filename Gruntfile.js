@@ -1,6 +1,10 @@
 module.exports = function(grunt) {
   'use strict';
 
+  var data = {};
+  var libConfig = {};
+  var newVersion = '';
+
   grunt.initConfig({
 
     karma: {
@@ -59,9 +63,7 @@ module.exports = function(grunt) {
 
     'string-replace': {
       dist: {
-        files: {
-          'dist/': ['src/**/*.js', 'entry.js'],
-        },
+        files: data,
         options: {
           replacements: [{
             pattern: new RegExp('\\n?(\/\\*\\s+)test-code(\\s+\\*\\/)' +
@@ -88,16 +90,15 @@ module.exports = function(grunt) {
 
     copy: {
       libs: {
-        files: [
-         {
-           flatten: true,
-           expand: true,
-           src: ['bower_components/sizzle/**/*.min.js'],
-           dest: 'dist/src/libs/',
-         },
-        ],
+        files: [ libConfig ],
        },
      },
+
+    version: {
+      dist: {
+        src: ['package.json'],
+      },
+    },
 
   });
 
@@ -107,13 +108,46 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-string-replace');
+  grunt.loadNpmTasks('grunt-version');
 
   grunt.registerTask('test', ['karma']);
 
-  grunt.registerTask('build', [
-    'clean:dist',
-    'string-replace:dist',
-    'copy',
-  ]);
+  grunt.registerTask('build', function(arg) {
+    var version = grunt.file.readJSON('package.json').version.split('.');
+    arg = arg || 'patch';
 
+    switch(arg) {
+    case 'major':
+      version[0]++;
+      version[1] = 0;
+      version[2] = 0;
+      break;
+    case 'minor':
+      version[1]++;
+      version[2] = 0;
+      break;
+    default:
+      version[2]++;
+    }
+
+    newVersion = version.join('.');
+
+    data['dist/' + newVersion + '/'] = [
+      'src/**/*.js', 'entry.js',
+    ];
+
+    libConfig = {
+      flatten: true,
+      expand: true,
+      src: ['bower_components/sizzle/**/*.min.js'],
+      dest: 'dist/' + newVersion + '/src/libs/',
+    };
+
+    grunt.task.run([
+      'string-replace:dist',
+      'copy:libs',
+      'version::' + arg,
+    ]);
+
+  });
 };
