@@ -1,5 +1,5 @@
 define([
-  'hybridatv/libs/polyfil',
+  'hybridatv/helpers/polyfil',
 ], function(polyfil) {
   'use strict';
 

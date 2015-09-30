@@ -1,6 +1,6 @@
 define([
   'hybridatv/helpers/async',
-  'hybridatv/libs/polyfil',
+  'hybridatv/helpers/polyfil',
 ], function(async, polyfil) {
   'use strict';
 

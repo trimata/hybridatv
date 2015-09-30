@@ -6,7 +6,7 @@
  * @exports hybridatv/main
  */
 define([
-  'hybridatv/libs/polyfil',
+  'hybridatv/helpers/polyfil',
   'hybridatv/libs/sizzle.min',
 ], function(polyfil, sizzle) {
   'use strict';

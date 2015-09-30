@@ -7,8 +7,8 @@ define([], function() {
 
     /**
      * Common used cross-browser methods
-     * @exports libs/polyfil
-     * @module libs/polyfil
+     * @exports helpers/polyfil
+     * @module helpers/polyfil
      */
     return {
       /**
