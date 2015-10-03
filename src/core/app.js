@@ -447,7 +447,7 @@ define([
       trigger('tmpChange', data);
     }
 
-    App.browse(newHash);
+    App.browse(newHash.slice(1));
   }
 
   App.helper('Hybridatv', {
