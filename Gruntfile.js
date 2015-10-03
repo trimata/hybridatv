@@ -162,7 +162,6 @@ module.exports = function(grunt) {
       'src/**/*.js', 'entry.js',
     ];
 
-
     grunt.task.run([
       'test',
       'string-replace:dist',
