@@ -2,7 +2,7 @@
   'use strict';
 
   var paths = {
-    hybridatv: '../hybridatv/src',
+    hybridatv: 'http://apps.hybrida.tv/framework/latest/src',
   };
 
   requirejs.config({
@@ -14,11 +14,9 @@
     'hybridatv/core/hbbtv',
     'hybridatv/vendors/analytics',
   ], function(hbbtv, analytics) {
-    var config = window.HYBRIDATV_ENV();
+    var config = window.HYBRIDATV_CONFIG();
 
     hbbtv.bootstrap();
-
-    console.log(config.url.analytics);
     analytics.init(config.url.analytics);
   });
 
