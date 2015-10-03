@@ -111,7 +111,7 @@ module.exports = function(grunt) {
       tag: {
         cmd: function(msg, version) {
           return [
-            'git commit -a -m "v' + msg + '"',
+            'git commit -a -m "' + msg + '"',
             'git tag v' + version,
           ].join(' && ');
         },
