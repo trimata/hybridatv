@@ -422,8 +422,8 @@ define([
     hashchange(evt);
 
     /* test-code */
-    this._hashchange(evt);
-    /* end-test-code */
+    App._hashchange(evt);
+    /* test-code-end */
   });
 
   function hashchange(evt) {

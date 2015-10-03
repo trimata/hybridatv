@@ -152,6 +152,7 @@ module.exports = function(grunt) {
 
 
     grunt.task.run([
+      'test',
       'string-replace:dist',
       'version::' + arg,
     ]);
