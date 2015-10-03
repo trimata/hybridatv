@@ -92,7 +92,10 @@ module.exports = function(grunt) {
         {
           flatten: true,
           expand: true,
-          src: ['bower_components/sizzle/**/*.min.js'],
+          src: [
+            'bower_components/sizzle/**/*.min.js',
+            'bower_components/requirejs/**/*.js',
+          ],
           dest: 'src/libs/',
         }],
        },

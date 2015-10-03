@@ -64,7 +64,7 @@ define([
         expect(app.getConfig().a).toEqual(42);
       });
 
-      it('throws error if container does not exist', function() {
+      xit('throws error if container does not exist', function() {
       });
 
     });

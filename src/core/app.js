@@ -30,7 +30,6 @@ define([
   function resetConfig() {
     config = {
       defaultHash: 'home',
-      container: undefined,
 
       template: {
         dir: '',
@@ -118,6 +117,8 @@ define([
     /* test-code */
 
     _resetConfig: resetConfig,
+
+    _hashchange: hashchange,
 
     _setMask: setMask,
 
@@ -418,6 +419,14 @@ define([
   });
 
   window.addEventListener('hashchange', function(evt) {
+    hashchange(evt);
+
+    /* test-code */
+    this._hashchange(evt);
+    /* end-test-code */
+  });
+
+  function hashchange(evt) {
     var oldHash = evt.oldURL.split('#')[1];
     var newHash = evt.newURL.split('#')[1];
     var from, to, data;
@@ -439,7 +448,7 @@ define([
     }
 
     App.browse(newHash);
-  });
+  }
 
   App.helper('Hybridatv', {
     $: $,

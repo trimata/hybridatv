@@ -42,6 +42,7 @@
         "beforeEach"  : true,
         "beforeAll"   : true,
         "spyOn"       : true,
+        "xit"         : true,
         "it"          : true
     }
 }
