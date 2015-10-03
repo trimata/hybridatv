@@ -109,9 +109,9 @@ module.exports = function(grunt) {
 
     exec: {
       tag: {
-        cmd: function(version) {
+        cmd: function(msg, version) {
           return [
-            'git commit -a -m "v' + version + '"',
+            'git commit -a -m "v' + msg + '"',
             'git tag v' + version,
           ].join(' && ');
         },
@@ -139,6 +139,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', function(arg) {
     var version = grunt.file.readJSON('package.json').version.split('.');
+    var msg = grunt.option('message');
     arg = arg || 'patch';
 
     switch(arg) {
@@ -166,7 +167,7 @@ module.exports = function(grunt) {
       'test',
       'string-replace:dist',
       'version::' + arg,
-      'exec:tag:' + newVersion,
+      'exec:tag:' + msg + ':' + newVersion,
     ]);
 
   });
