@@ -431,7 +431,7 @@ define([
     var newHash = evt.newURL.split('#')[1];
     var from, to, data;
 
-    if (!newHash || !oldHash) {
+    if (!newHash) {
       return;
     }
 
