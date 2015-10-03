@@ -236,7 +236,7 @@ define([
           });
         },
         function getConfig(over) {
-          async.get(config.template.dir + hash + '/data.json',
+          async.get(config.template.dir + hash + '.json',
           {}, function(res) {
             cfg = JSON.parse(res);
 

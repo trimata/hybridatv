@@ -1,6 +1,6 @@
 {
   "name": "hybridatv",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "the way to hbbtv",
   "main": "entry.js",
   "directories": {
@@ -23,6 +23,7 @@
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-copy": "^0.8.1",
     "grunt-contrib-watch": "^0.6.1",
+    "grunt-exec": "^0.4.6",
     "grunt-jsdoc": "^0.6.8",
     "grunt-karma": "^0.12.0",
     "grunt-string-replace": "^1.2.0",

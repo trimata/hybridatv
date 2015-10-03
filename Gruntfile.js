@@ -107,6 +107,16 @@ module.exports = function(grunt) {
       },
     },
 
+    exec: {
+      tag: {
+        cmd: function(version) {
+          return [
+            'git commit -a -m "v' + version + '"',
+            'git tag v' + version,
+          ].join(' && ');
+        },
+      }
+    }
   });
 
   grunt.loadNpmTasks('grunt-karma');
@@ -116,6 +126,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-string-replace');
   grunt.loadNpmTasks('grunt-version');
+  grunt.loadNpmTasks('grunt-exec');
 
   grunt.registerTask('test', ['karma']);
 
@@ -155,6 +166,7 @@ module.exports = function(grunt) {
       'test',
       'string-replace:dist',
       'version::' + arg,
+      'exec:tag:' + newVersion,
     ]);
 
   });
