@@ -32,7 +32,7 @@ define([
       defaultHash: 'home',
 
       template: {
-        dir: '',
+        dir: 'templates/',
         ext: '.html',
       },
 
@@ -229,7 +229,7 @@ define([
 
       async.parallel([
         function getTemplate(over) {
-          async.get(config.template.dir + hash + '/view' +
+          async.get(config.template.dir + hash +
           config.template.ext, {}, function(res) {
             html = res;
             over();
