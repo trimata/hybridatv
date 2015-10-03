@@ -15,7 +15,7 @@ grunt test
 ### Build task
 
 ```shell
-grunt build
+grunt build:[major|minor|patch] [--message=<msg>]
 ```
 
 ### Basic usage
