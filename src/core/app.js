@@ -418,7 +418,8 @@ define([
   });
 
   window.addEventListener('hashchange', function(evt) {
-    var oldHash = evt.newURL.split('#')[1];
+    var oldHash = evt.oldURL.split('#')[1];
+    var newHash = evt.newURL.split('#')[1];
     var from, to, data;
 
     if (!oldHash) {
@@ -426,7 +427,8 @@ define([
     }
 
     from = url.parseHash(oldHash);
-    to = url.parseHash(evt.newURL.split('#')[1]);
+    to = url.parseHash(newHash);
+
     data = {
       from: from,
       to: to,
@@ -436,7 +438,7 @@ define([
       trigger('tmpChange', data);
     }
 
-    App.browse(evt.newURL.split('#')[1]);
+    App.browse(newHash);
   });
 
   App.helper('Hybridatv', {
