@@ -1,7 +1,9 @@
 module.exports = function(grunt) {
   'use strict';
 
-  var data = {};
+  var data = {
+    version: {},
+  };
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -147,27 +149,10 @@ module.exports = function(grunt) {
 
   });
 
-  grunt.registerTask('build', function(arg, buildSuffix) {
-    var version = getVersion();
-    var newVersion;
+  grunt.registerTask('build', function(update, buildSuffix) {
+    var newVersion = getNextVersion(getVersion(), update);
 
     buildSuffix = buildSuffix ? '' : '-build';
-
-    switch(arg) {
-    case 'major':
-      version.major++;
-      version.minor = 0;
-      version.patch = 0;
-      break;
-    case 'minor':
-      version.minor++;
-      version.patch = 0;
-      break;
-    default:
-      version.patch++;
-    }
-
-    newVersion = version.toString();
 
     data['dist/' + newVersion + buildSuffix + '/'] = [
       'src/**/*.js', 'entry.js',
@@ -183,31 +168,43 @@ module.exports = function(grunt) {
   });
 
   function getVersion() {
-    var parts = grunt.config('pkg').version.split('.');
+    return grunt.config('pkg').version;
+  }
 
-    return {
-      major: parts[0],
-      minor: parts[1],
-      patch: parts[2],
-      toString: function() {
-        return this.major + '.' + this.minor + '.' + this.patch;
-      },
-    };
+  function getNextVersion(version, update) {
+    var parts = version.split('.');
+
+    switch(update) {
+    case 'major':
+      parts[0]++;
+      parts[1] = 0;
+      parts[2] = 0;
+      break;
+    case 'minor':
+      parts[1]++;
+      parts[2] = 0;
+      break;
+    default:
+      parts[2]++;
+    }
+
+    return parts.join('.');
   }
 
   grunt.registerTask('deploy', function() {
     var msg = grunt.option('message');
     var dir = grunt.option('dir');
-    var type = grunt.option('type') || '';
+    var update = grunt.option('update') || '';
+    var newVersion = getNextVersion(getVersion(), update);
 
     grunt.task.run([
-      'build:' + type + ':no-suffix',
+      'build:' + update + ':no-suffix',
     ]);
 
     grunt.task.run([
       'exec:commit:' + msg,
-      'exec:tag:' + data.version,
-      'exec:transfer:' + data.version + ':' + dir,
+      'exec:tag:' + newVersion,
+      'exec:transfer:' + newVersion + ':' + dir,
     ]);
 
   });
