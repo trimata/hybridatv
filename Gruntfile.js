@@ -108,14 +108,24 @@ module.exports = function(grunt) {
     },
 
     exec: {
-      tag: {
+      commit: {
         cmd: function(msg) {
-          return [
-            'git commit -a -m "' + msg + '"',
-            'version=$(ls -t dist | head -1);git tag v$version',
-          ].join(' && ');
+          return 'git add -A; git commit -m "' + msg + '"';
+        }
+      },
+
+      tag: {
+        cmd: function(version) {
+          return 'git tag v' + version;
         },
-      }
+      },
+
+      transfer: {
+        cmd: function(version, dir) {
+          return 'cp -rnv dist/' + version + ' ' + dir;
+        }
+      },
+
     }
   });
 
@@ -168,6 +178,8 @@ module.exports = function(grunt) {
       'string-replace:dist',
       'version:dist:' + newVersion,
     ]);
+
+    data.version = newVersion;
   });
 
   function getVersion() {
@@ -185,12 +197,17 @@ module.exports = function(grunt) {
 
   grunt.registerTask('deploy', function() {
     var msg = grunt.option('message');
-    var type = grunt.option('type');
-
+    var dir = grunt.option('dir');
+    var type = grunt.option('type') || '';
 
     grunt.task.run([
-      'build:' + type + ':b',
-      'exec:tag:' + msg,
+      'build:' + type + ':no-suffix',
+    ]);
+
+    grunt.task.run([
+      'exec:commit:' + msg,
+      'exec:tag:' + data.version,
+      'exec:transfer:' + data.version + ':' + dir,
     ]);
 
   });
