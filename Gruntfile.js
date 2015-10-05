@@ -2,9 +2,9 @@ module.exports = function(grunt) {
   'use strict';
 
   var data = {};
-  var newVersion = '';
 
   grunt.initConfig({
+    pkg: grunt.file.readJSON('package.json'),
 
     karma: {
       options:{
@@ -109,10 +109,10 @@ module.exports = function(grunt) {
 
     exec: {
       tag: {
-        cmd: function(msg, version) {
+        cmd: function(msg) {
           return [
             'git commit -a -m "' + msg + '"',
-            'git tag v' + version,
+            'version=$(ls -t dist | -name 1);git tag v$version',
           ].join(' && ');
         },
       }
@@ -137,36 +137,60 @@ module.exports = function(grunt) {
 
   });
 
-  grunt.registerTask('build', function(arg) {
-    var version = grunt.file.readJSON('package.json').version.split('.');
-    var msg = grunt.option('message');
-    arg = arg || 'patch';
+  grunt.registerTask('build', function(arg, buildSuffix) {
+    var version = getVersion();
+    var newVersion;
+
+    buildSuffix = buildSuffix ? '' : '-build';
 
     switch(arg) {
     case 'major':
-      version[0]++;
-      version[1] = 0;
-      version[2] = 0;
+      version.major++;
+      version.minor = 0;
+      version.patch = 0;
       break;
     case 'minor':
-      version[1]++;
-      version[2] = 0;
+      version.minor++;
+      version.patch = 0;
       break;
     default:
-      version[2]++;
+      version.patch++;
     }
 
-    newVersion = version.join('.');
+    newVersion = version.toString();
 
-    data['dist/' + newVersion + '/'] = [
+    data['dist/' + newVersion + buildSuffix + '/'] = [
       'src/**/*.js', 'entry.js',
     ];
 
     grunt.task.run([
       'test',
       'string-replace:dist',
-      'version::' + arg,
-      'exec:tag:' + msg + ':' + newVersion,
+      'version:dist:' + newVersion,
+    ]);
+  });
+
+  function getVersion() {
+    var parts = grunt.config('pkg').version.split('.');
+
+    return {
+      major: parts[0],
+      minor: parts[1],
+      patch: parts[2],
+      toString: function() {
+        return this.major + '.' + this.minor + '.' + this.patch;
+      },
+    };
+  }
+
+  grunt.registerTask('deploy', function() {
+    var msg = grunt.option('message');
+    var type = grunt.option('type');
+
+
+    grunt.task.run([
+      'build:' + type + ':b',
+      'exec:tag:' + msg,
     ]);
 
   });
