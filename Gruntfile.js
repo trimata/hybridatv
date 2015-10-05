@@ -112,7 +112,7 @@ module.exports = function(grunt) {
         cmd: function(msg) {
           return [
             'git commit -a -m "' + msg + '"',
-            'version=$(ls -t dist | -name 1);git tag v$version',
+            'version=$(ls -t dist | -head 1);git tag v$version',
           ].join(' && ');
         },
       }
