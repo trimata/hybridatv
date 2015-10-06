@@ -149,7 +149,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', function(update, buildSuffix) {
     var newVersion = /^\d+\.\d+\.\d+$/.test(update) ?
-      update : getNextVersion(getVersion(), null);
+      update : getNextVersion(getVersion(), update);
 
     buildSuffix = buildSuffix ? '' : '-build';
 
