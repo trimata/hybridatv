@@ -1,9 +1,7 @@
 module.exports = function(grunt) {
   'use strict';
 
-  var data = {
-    version: {},
-  };
+  var data = {};
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -150,7 +148,8 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('build', function(update, buildSuffix) {
-    var newVersion = getNextVersion(getVersion(), update);
+    var newVersion = /^\d+\.\d+\.\d+$/.test(update) ?
+      update : getNextVersion(getVersion(), null);
 
     buildSuffix = buildSuffix ? '' : '-build';
 
@@ -160,11 +159,9 @@ module.exports = function(grunt) {
 
     grunt.task.run([
       'test',
-      'string-replace:dist',
       'version:dist:' + newVersion,
+      'string-replace:dist',
     ]);
-
-    data.version = newVersion;
   });
 
   function getVersion() {
@@ -194,14 +191,11 @@ module.exports = function(grunt) {
   grunt.registerTask('deploy', function() {
     var msg = grunt.option('message');
     var dir = grunt.option('dir');
-    var update = grunt.option('update') || '';
+    var update = grunt.option('update');
     var newVersion = getNextVersion(getVersion(), update);
 
     grunt.task.run([
-      'build:' + update + ':no-suffix',
-    ]);
-
-    grunt.task.run([
+      'build:' + newVersion + ':no-suffix',
       'exec:commit:' + msg,
       'exec:tag:' + newVersion,
       'exec:transfer:' + newVersion + ':' + dir,
