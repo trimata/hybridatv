@@ -120,13 +120,13 @@ define([
       });
     });
 
-    xdescribe('history data', function() {
+    describe('history data', function() {
       afterEach(function() {
-        app._resetHistory();
+        app = new App();
       });
 
       it('is empty when initialized', function() {
-        expect(app.getHistory()).toEqual([]);
+        expect(app.history()).toEqual([]);
       });
 
       /*
@@ -137,9 +137,9 @@ define([
       */
     });
 
-    xdescribe('when dealing with helpers', function() {
+    describe('when dealing with helpers', function() {
       afterEach(function() {
-        app._resetHelpers();
+        app = new App();
       });
 
       it('gets helper undefined if not defined', function() {
@@ -156,47 +156,48 @@ define([
         app.helper('dummy', 42);
         app.helper('dummy', 43);
 
-        expect(app.helper('dummy'), 42);
+        expect(app.helper('dummy')).toEqual(42);
       });
     });
 
-    xdescribe('when setting bitmask', function() {
+    describe('when setting bitmask', function() {
       beforeEach(function() {
-        spyOn(app, '_setMask');
+        app = new App();
+        spyOn(app, 'setMask');
       });
 
       it('sets 0 if no arguments are passed', function() {
         app.setKeyset();
 
-        expect(app._setMask).toHaveBeenCalledWith(0);
+        expect(app.setMask).toHaveBeenCalledWith(0);
       });
 
       it('sets 0 if empty array is passed', function() {
         app.setKeyset([]);
 
-        expect(app._setMask).toHaveBeenCalledWith(0);
+        expect(app.setMask).toHaveBeenCalledWith(0);
       });
 
       it('sets value of 15 if the four colors are passed', function() {
         app.setKeyset(['RED', 'GREEN', 'BLUE', 'YELLOW']);
 
-        expect(app._setMask).toHaveBeenCalledWith(15);
+        expect(app.setMask).toHaveBeenCalledWith(15);
       });
 
       it('invalid labels are ignored', function() {
         app.setKeyset(['VCR', 'INVALID', 'RED']);
 
-        expect(app._setMask).toHaveBeenCalledWith(33);
+        expect(app.setMask).toHaveBeenCalledWith(33);
       });
 
       it('sets any number', function() {
         app.setKeyset(3);
 
-        expect(app._setMask).toHaveBeenCalledWith(3);
+        expect(app.setMask).toHaveBeenCalledWith(3);
 
         app.setKeyset(-3);
 
-        expect(app._setMask).toHaveBeenCalledWith(-3);
+        expect(app.setMask).toHaveBeenCalledWith(-3);
       });
 
     });

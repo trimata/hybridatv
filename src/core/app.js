@@ -1,8 +1,9 @@
 define([
   'hybridatv/core/domtv',
+  'hybridatv/helpers/polyfil',
   'hybridatv/helpers/async',
   'hybridatv/helpers/url',
-], function($, async, url) {
+], function($, polyfil, async, url) {
   'use strict';
 
   console.log($, async, url);
@@ -308,16 +309,20 @@ define([
       trigger('keydown', evt);
     };
 
-    this.config(cfg).extend('helper', 'Hb', { $: $ });
+    this.config(cfg).helper('Hb', { $: $ });
   }
 
   HybridaTV.prototype.destroy = function() {
     window.removeEventListener('hashchange', hashchangehandler);
     document.removeEventListener('keydown', keydownhandler);
-    this.hide();
+    trigger('destroy');
   };
 
-  HybridaTV.prototype.helper = function(name) {
+  HybridaTV.prototype.helper = function(name, val) {
+    if (arguments.length > 1) {
+      return this.extend('helper', name, val);
+    }
+
     return extension.helper[name];
   };
 
@@ -336,6 +341,10 @@ define([
     return this;
   };
 
+  HybridaTV.prototype.history = function() {
+    return history;
+  };
+
   HybridaTV.prototype.extend = function(kind, name, obj) {
     if (['helper', 'module', 'component'].indexOf(kind) > -1) {
       if (typeof extension[kind][name] === 'undefined') {
@@ -346,6 +355,7 @@ define([
   };
 
   HybridaTV.prototype.getActiveComponent = function($cnt) {
+    // FIXME not cool
     var match = $cnt.find(config.activeSelector + ':first');
 
     if (match.s.length) {
@@ -371,6 +381,7 @@ define([
     }
     */
 
+    // FIXME not cool to redirect
     if (window.location.hash) {
       hash = window.location.hash;
       window.location.hash = '';
@@ -499,26 +510,24 @@ define([
     return state;
   };
 
-  HybridaTV.prototype.setKeyset = function(value) {
-    var mask = 0;
+  HybridaTV.prototype.setKeyset = function(val) {
+    var maskValue = 0;
     var len;
     var i;
-    var val;
+    var value;
 
-    value = value || [];
-
-    if (typeof value === 'number') {
-      mask = value;
-    } else {
-      len = value.length;
+    if (polyfil.isArray(val)) {
+      len = val.length;
 
       for (i = 0; i < len; i++) {
-        val = params.maskValues[value[i]];
-        mask += typeof val === 'number' ? val : 0;
+        value = params.maskValues[val[i]] || 0;
+        maskValue += value;
       }
+    } else {
+      maskValue = parseInt(val, 10) || 0;
     }
 
-    this.setMask(mask);
+    this.setMask(maskValue);
 
     return this;
   };
