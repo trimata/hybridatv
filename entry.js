@@ -1,24 +1,26 @@
 ;(function() {
   'use strict';
 
-  var paths = {
-    hybridatv: 'http://apps.hybrida.tv/framework/latest/src',
-  };
-
   requirejs.config({
     baseUrl: '.',
-    paths: paths,
+    paths: {
+      hybridatv: '//apps.hybrida.tv/framework/latest/src',
+    },
   });
 
   requirejs([
     'hybridatv/core/hbbtv',
     'hybridatv/vendors/analytics',
   ], function(hbbtv, analytics) {
-    var config = window.HYBRIDATV_CONFIG();
+    var config;
 
-    hbbtv.bootstrap();
-    analytics.init(config.url.analytics);
+    if (typeof window.HYBRIDATV_CONFIG === 'function') {
+      hbbtv.bootstrap();
+      config = window.HYBRIDATV_CONFIG();
+
+      analytics.init(config.url.analytics);
+      requirejs([config.url.entry]);
+    }
   });
 
-  requirejs(['main']);
-})();
+}());
