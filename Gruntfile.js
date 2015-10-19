@@ -189,10 +189,9 @@ module.exports = function(grunt) {
   }
 
   grunt.registerTask('deploy', function() {
-    var msg = grunt.option('message');
     var dir = grunt.option('dir');
-    var update = grunt.option('update');
-    var newVersion = getNextVersion(getVersion(), update);
+    var newVersion = getNextVersion(getVersion(), grunt.option('update'));
+    var msg = grunt.option('message') || 'Update to v' + newVersion;
 
     grunt.task.run([
       'build:' + newVersion + ':no-suffix',
