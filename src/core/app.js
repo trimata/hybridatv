@@ -286,7 +286,6 @@ define([
 
 
   function HybridaTV(cfg) {
-    var self = this;
 
     elemcfg = document.getElementById('oipfcfg');
     appmgr = document.getElementById('appmgr');
@@ -302,7 +301,6 @@ define([
     isBack = false;
 
     hashchangehandler = function() {
-      console.log(this, self);
     };
 
     keydownhandler = function(evt) {
@@ -310,6 +308,9 @@ define([
     };
 
     this.config(cfg).helper('Hb', { $: $ });
+
+    window.addEventListener('hashchange', hashchangehandler);
+    document.addEventListener('keydown', keydownhandler);
   }
 
   HybridaTV.prototype.destroy = function() {
@@ -520,8 +521,10 @@ define([
       len = val.length;
 
       for (i = 0; i < len; i++) {
-        value = params.maskValues[val[i]] || 0;
-        maskValue += value;
+        if (typeof val[i] === 'string') {
+          value = params.maskValues[val[i].toUpperCase()] || 0;
+          maskValue += value;
+        }
       }
     } else {
       maskValue = parseInt(val, 10) || 0;

@@ -9,14 +9,23 @@ define([
   describe('App', function() {
     var appContainer;
     var app;
+    var container;
     var $;
     var $container;
 
     beforeAll(function() {
       appContainer = document.getElementById('app-test');
+      container = document.getElementById('app-container');
+    });
+
+    beforeEach(function() {
       app = new App();
       $ = app.helper('Hb').$;
-      $container = $(document.getElementById('app-container'));
+      $container = $(container);
+    });
+
+    afterEach(function() {
+      app.destroy();
     });
 
     afterAll(function() {
@@ -28,7 +37,6 @@ define([
 
       beforeEach(function() {
         spy = jasmine.createSpy();
-        app = new App();
       });
 
       it('triggers beforeRun event', function() {
@@ -51,10 +59,6 @@ define([
     });
 
     describe('configuration', function() {
-      beforeEach(function() {
-        app = new App();
-      });
-
       it('sets options', function() {
         app.config({
           a: 42,
@@ -70,10 +74,6 @@ define([
 
     describe('states', function() {
       var config = {};
-
-      afterEach(function() {
-        app = new App();
-      });
 
       it('has empty state by default', function() {
         expect(app.state()).toEqual({});
@@ -121,10 +121,6 @@ define([
     });
 
     describe('history data', function() {
-      afterEach(function() {
-        app = new App();
-      });
-
       it('is empty when initialized', function() {
         expect(app.history()).toEqual([]);
       });
@@ -138,10 +134,6 @@ define([
     });
 
     describe('when dealing with helpers', function() {
-      afterEach(function() {
-        app = new App();
-      });
-
       it('gets helper undefined if not defined', function() {
         app.helper('fake', 42);
         expect(app.helper('dummy')).not.toBeDefined();
@@ -162,7 +154,6 @@ define([
 
     describe('when setting bitmask', function() {
       beforeEach(function() {
-        app = new App();
         spyOn(app, 'setMask');
       });
 
