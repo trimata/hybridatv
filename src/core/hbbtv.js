@@ -2,6 +2,8 @@ define(function() {
   'use strict';
 
   var media = document.getElementById('media-player');
+  var elemcfg = document.getElementById('oipfcfg');
+  var appmgr = document.getElementById('appmgr');
 
   function initMedia() {
     try {
@@ -14,8 +16,9 @@ define(function() {
 
   function initApplication() {
     var app;
+
     try {
-      app = document.getElementById('appmgr').getOwnerApplication(document);
+      app = appmgr.getOwnerApplication(document);
       app.show();
       app.activate();
     } catch (e) {}
@@ -23,7 +26,7 @@ define(function() {
 
   function getCurrentChannel() {
     if (media && media.currentChannel !== undefined &&
-    media.currentChannel) {
+      media.currentChannel) {
       return {
         'Tvservice[onid]': media.currentChannel.onid,
         'Tvservice[tsid]': media.currentChannel.tsid,
@@ -38,12 +41,32 @@ define(function() {
     return {};
   }
 
+  function setKeyset(mask) {
+    var app;
+
+    try {
+      elemcfg.keyset.value = mask;
+    } catch (e) {}
+
+    try {
+      elemcfg.keyset.setValue(mask);
+    } catch (e) {}
+
+    try {
+      app = appmgr.getOwnerApplication(document);
+      app.privateData.keyset.setValue(mask);
+    } catch (e) {}
+  }
+
   return {
     bootstrap: function() {
       initMedia();
       initApplication();
+      setKeyset(0x0);
     },
 
     getCurrentChannel: getCurrentChannel,
+
+    setKeyset: setKeyset,
   };
 });

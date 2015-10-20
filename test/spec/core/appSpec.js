@@ -1,6 +1,7 @@
 define([
-  'hybridatv/core/app'
-], function(App) {
+  'hybridatv/core/app',
+  'hybridatv/core/hbbtv',
+], function(App, hbbtv) {
   'use strict';
 
   document.body.innerHTML = '<div id="app-test"><div id="app">' +
@@ -154,41 +155,41 @@ define([
 
     describe('when setting bitmask', function() {
       beforeEach(function() {
-        spyOn(app, 'setMask');
+        spyOn(hbbtv, 'setKeyset');
       });
 
       it('sets 0 if no arguments are passed', function() {
         app.setKeyset();
 
-        expect(app.setMask).toHaveBeenCalledWith(0);
+        expect(hbbtv.setKeyset).toHaveBeenCalledWith(0);
       });
 
       it('sets 0 if empty array is passed', function() {
         app.setKeyset([]);
 
-        expect(app.setMask).toHaveBeenCalledWith(0);
+        expect(hbbtv.setKeyset).toHaveBeenCalledWith(0);
       });
 
       it('sets value of 15 if the four colors are passed', function() {
         app.setKeyset(['RED', 'GREEN', 'BLUE', 'YELLOW']);
 
-        expect(app.setMask).toHaveBeenCalledWith(15);
+        expect(hbbtv.setKeyset).toHaveBeenCalledWith(15);
       });
 
       it('invalid labels are ignored', function() {
         app.setKeyset(['VCR', 'INVALID', 'RED']);
 
-        expect(app.setMask).toHaveBeenCalledWith(33);
+        expect(hbbtv.setKeyset).toHaveBeenCalledWith(33);
       });
 
       it('sets any number', function() {
         app.setKeyset(3);
 
-        expect(app.setMask).toHaveBeenCalledWith(3);
+        expect(hbbtv.setKeyset).toHaveBeenCalledWith(3);
 
         app.setKeyset(-3);
 
-        expect(app.setMask).toHaveBeenCalledWith(-3);
+        expect(hbbtv.setKeyset).toHaveBeenCalledWith(-3);
       });
 
     });

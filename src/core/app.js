@@ -1,9 +1,10 @@
 define([
   'hybridatv/core/domtv',
+  'hybridatv/core/hbbtv',
   'hybridatv/helpers/polyfil',
   'hybridatv/helpers/async',
   'hybridatv/helpers/url',
-], function($, polyfil, async, url) {
+], function($, hbbtv, polyfil, async, url) {
   'use strict';
 
   console.log($, async, url);
@@ -512,7 +513,7 @@ define([
   };
 
   HybridaTV.prototype.setKeyset = function(val) {
-    var maskValue = 0;
+    var mask = 0;
     var len;
     var i;
     var value;
@@ -523,14 +524,14 @@ define([
       for (i = 0; i < len; i++) {
         if (typeof val[i] === 'string') {
           value = params.maskValues[val[i].toUpperCase()] || 0;
-          maskValue += value;
+          mask += value;
         }
       }
     } else {
-      maskValue = parseInt(val, 10) || 0;
+      mask = parseInt(val, 10) || 0;
     }
 
-    this.setMask(maskValue);
+    hbbtv.setKeyset(mask);
 
     return this;
   };
