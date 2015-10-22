@@ -1,62 +1,57 @@
 define([
-  'hybridatv/helpers/polyfil',
-], function(polyfil) {
+  'hybridatv/helpers/url',
+], function(url) {
   'use strict';
 
   var uniqueId = 0;
   var voidFn = function() {};
-
-  function buildQueryString(params) {
-    var queryString = '';
-    var prop;
-    var len;
-    var el;
-    var i;
-
-    for (prop in params) {
-      el = params[prop];
-      if (polyfil.isArray(el)) {
-        len = el.length;
-        for (i = 0; i < len; i++) {
-          queryString += prop + '[]=' + el[i] + '&';
-        }
-      } else {
-        queryString += prop + '=' + el + '&';
-      }
-    }
-
-    return queryString.slice(0, queryString.length - 1);
-  }
+  var head = document.getElementsByTagName('head')[0];
 
   return {
-    buildQueryString: buildQueryString,
-    load: function(type, url, params, success, error) {
-      var request = new XMLHttpRequest();
-      var queryString = buildQueryString(params);
-      var headers = [];
-      var args = [];
-      var len;
-      var el;
-      var i;
 
-      switch(type) {
-      case 'POST':
-        headers.push({
-          name: 'Content-type',
-          val: 'application/x-www-form-urlencoded',
-        });
-        args.push(queryString);
-        break;
-      case 'GET':
-        if (queryString.length) {
-          url += '?' + queryString;
-        }
-        break;
+    get: function(path) {
+      var data;
+      var success;
+      var error;
+      var queryString;
+
+      if (typeof arguments[1] === 'function') {
+
+        //allows passing only path and success callback
+        error = arguments[2];
+        success = arguments[1];
+        data = {};
+      } else {
+
+        // allows passing only path
+        data = arguments[1] || {};
       }
 
-      request.open(type, url, true);
+      queryString = url.queryString(data);
 
-      request.onreadystatechange = function() {
+      if (queryString.length) {
+        path += (path.indexOf('?') > -1 ? '&' : '?') + queryString;
+      }
+
+      this.request(path, 'get', [], '', success, error);
+    },
+
+    post: function(path, data, success, error) {
+      this.request(path, 'post', [{
+        name: 'Content-type',
+        val: 'application/x-www-form-urlencoded',
+      }], url.queryString(data), success, error);
+    },
+
+    request: function(path, type, headers, data, success, error) {
+      var req = new XMLHttpRequest();
+      var len = headers.length;
+      var i;
+      var el;
+
+      req.open(type, path, true);
+
+      req.onreadystatechange = function() {
         if (this.readyState === 4) {
           if (this.status === 200) {
             if (typeof success === 'function') {
@@ -68,26 +63,23 @@ define([
         }
       };
 
-      len = headers.length;
-
       for (i = 0; i < len; i++) {
         el = headers[i];
-        request.setRequestHeader(el.name, el.val);
+        req.setRequestHeader(el.name, el.val);
       }
 
-      request.send.apply(request, args);
+      req.send(data);
     },
 
-    jsonp: function(url, params, callback, context) {
+    jsonp: function(url, data, callback, context) {
       var name = '_jsonp_callback_' + (uniqueId++);
       var script = document.createElement('script');
-      var head = document.getElementsByTagName('head')[0];
       var queryString;
 
       callback = callback || voidFn;
 
-      params.callback = name;
-      queryString = buildQueryString(params);
+      data.callback = name;
+      queryString = url.queryString(data);
 
       script.type = 'text/javascript';
       script.src = url +
@@ -106,24 +98,17 @@ define([
     parallel: function(fns, callback) {
       var len = fns.length;
       var count = len;
-      var i;
       var iterDown = function() {
-        if (! --count) {
+        if (--count <= 0) {
           callback();
         }
       };
+      var i;
 
       for (i = 0; i < len; i++) {
         fns[i](iterDown);
       }
     },
 
-    get: function(url, data, success, error) {
-      this.load('GET', url, data, success, error);
-    },
-
-    post: function(url, data, success, error) {
-      this.load('POST', url, data, success, error);
-    },
   };
 });

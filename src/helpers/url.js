@@ -1,9 +1,34 @@
 /* globals define, requirejs */
 
-define(function() {
+define([
+  'hybridatv/helpers/polyfil',
+], function(polyfil) {
   'use strict';
 
   return {
+
+    queryString: function(params) {
+      var parts = [], prop, len, i, el;
+
+      for (prop in params) {
+        el = params[prop];
+        if (polyfil.isArray(el)) {
+          len = el.length;
+          for (i = 0; i < len; i++) {
+            parts.push(prop + '[]=' + el[i]);
+          }
+        } else {
+          parts.push(prop + '=' + el);
+        }
+      }
+
+      return parts.join('&');
+    },
+
+
+    ///////////
+
+
     buildHash: function(view, data) {
       var prop;
       var result = '/' + view;

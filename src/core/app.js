@@ -63,34 +63,6 @@ define([
   //    return this;
   //  },
 
-
-  //  /* test-code */
-
-  //  _resetConfig: resetConfig,
-
-  //  _hashchange: hashchange,
-
-  //  _setMask: setMask,
-
-  //  _resetHandlers: function() {
-  //    handler = {};
-  //  },
-
-  //  _resetHistory: function() {
-  //    history = [];
-  //  },
-
-  //  _resetHelpers: function() {
-  //    helpers = {};
-  //  },
-
-  //  _resetStates: function() {
-  //    states = {};
-  //  },
-
-  //  /* test-code-end */
-
-
   //  component: function(name, item) {
   //    var component = components[name];
 
@@ -565,25 +537,6 @@ define([
     });
 
     return this;
-  };
-
-  HybridaTV.prototype.setMask = function(mask) {
-    var app;
-
-    // for HbbTV 0.5:
-    try {
-      elemcfg.keyset.value = mask;
-    } catch (e) {}
-    try {
-      elemcfg.keyset.setValue(mask);
-    } catch (e) {}
-
-    // for HbbTV 1.0:
-    try {
-      app = appmgr.getOwnerApplication(document);
-      app.privateData.keyset.setValue(mask);
-      app.privateData.keyset.value = mask;
-    } catch (e) {}
   };
 
   /*
