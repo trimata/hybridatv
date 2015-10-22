@@ -184,25 +184,25 @@ define([
   //});
 
   //function hashchange(evt) {
-  //  var oldHash = evt.oldURL.split('#')[1];
-  //  var newHash = evt.newURL.split('#')[1];
-  //  var from, to, data;
+  //
+  //
+  //
 
-  //  if (!newHash) {
-  //    return;
-  //  }
+  //
+  //
+  //
 
-  //  from = url.parseHash(oldHash);
-  //  to = url.parseHash(newHash);
+  //
+  //
 
-  //  data = {
-  //    from: from,
-  //    to: to,
-  //  };
+  //
+  //
+  //
+  //
 
-  //  if (from.tmp !== to.tmp) {
-  //    trigger('tmpChange', data);
-  //  }
+  //
+  //
+  //
 
   //  App.browse(newHash.slice(1));
   //}
@@ -230,6 +230,7 @@ define([
     },
   },
 
+    isAppRunning = false,
     config = defaultConfig(),
     extension, handler, state, hashchangehandler, keydownhandler,
     isBack, elemcfg, appmgr, instance, history, $container;
@@ -259,6 +260,7 @@ define([
 
 
   function HybridaTV(cfg) {
+    var self = this;
 
     elemcfg = document.getElementById('oipfcfg');
     appmgr = document.getElementById('appmgr');
@@ -273,7 +275,30 @@ define([
     state = {};
     isBack = false;
 
-    hashchangehandler = function() {
+    hashchangehandler = function(evt) {
+      //var oldHash = evt.oldURL.split('#')[1];
+      var newHash = evt.newURL.split('#')[1];
+      //var from, to, data;
+
+      if (!isAppRunning || !newHash) {
+        return;
+      }
+
+      /*
+      from = url.parseHash(oldHash);
+      to = url.parseHash(newHash);
+
+      data = {
+        from: from,
+        to: to,
+      };
+
+      if (from.tmp !== to.tmp) {
+        trigger('tmpChange', data);
+      }
+      */
+
+      self.browse(newHash, $container);
     };
 
     keydownhandler = function(evt) {
@@ -289,6 +314,8 @@ define([
   HybridaTV.prototype.destroy = function() {
     window.removeEventListener('hashchange', hashchangehandler);
     document.removeEventListener('keydown', keydownhandler);
+    isAppRunning = false;
+
     trigger('destroy');
   };
 
@@ -340,12 +367,13 @@ define([
   };
 
   HybridaTV.prototype.run = function() {
-    var hash;
+    var hash = window.location.hash;
 
-    trigger('beforeRun');
+    trigger('beforerun');
 
     $container = $(config.container);
 
+    isAppRunning = true;
     /*
     if (!$container.s.length) {
       throw {
@@ -355,14 +383,18 @@ define([
     }
     */
 
-    // FIXME not cool to redirect
-    if (window.location.hash) {
-      hash = window.location.hash;
-      window.location.hash = '';
+    if (hash.length) {
+      this.get(hash, $container, function() {
+        trigger('initialviewready');
+      });
     } else {
-      hash = url.buildHash(config.defaultHash, {});
+      this.navigate(config.defaultHash);
     }
 
+    return this;
+  };
+
+  HybridaTV.prototype.navigate = function(hash) {
     window.location.hash = hash;
 
     return this;

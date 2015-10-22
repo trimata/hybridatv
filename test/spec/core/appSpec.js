@@ -40,8 +40,8 @@ define([
         spy = jasmine.createSpy();
       });
 
-      it('triggers beforeRun event', function() {
-        app.on('beforeRun', spy).run();
+      it('triggers beforerun event', function() {
+        app.on('beforerun', spy).run();
         expect(spy).toHaveBeenCalled();
       });
 
@@ -49,8 +49,8 @@ define([
         var spy2 = jasmine.createSpy();
 
         app
-          .on('beforeRun', spy)
-          .on('beforeRun', spy2)
+          .on('beforerun', spy)
+          .on('beforerun', spy2)
           .run();
 
         expect(spy).toHaveBeenCalled();
