@@ -15,7 +15,13 @@ grunt test
 ### Build task
 
 ```shell
-grunt build:[major|minor|patch] [--message=<msg>]
+grunt build:[major|minor|patch]
+```
+
+### Deploy task
+
+```shell
+grunt deploy --dir=<dir> [--message=<msg>] [--update=major|minor|patch]
 ```
 
 ### Basic usage
