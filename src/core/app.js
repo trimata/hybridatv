@@ -5,34 +5,6 @@ define([
   'hybridatv/helpers/async',
 ], function(hbbtv, sizzle, polyfil, async) {
   'use strict';
-  //var handler = {};
-  //var helpers = {};
-  //var components = {};
-  //var instance = {};
-  //var history = [];
-  //var states = {};
-
-  ////hardly ever going to change
-  //var maskValues = {
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //};
-
-  //var config = {};
-
-  //function resetConfig() {
-
-  //}
-
-  //var isBack = false;
-
-
-  //var App = {
 
   //  component: function(name, constructor) {
   //    var component = components[name];
@@ -44,34 +16,6 @@ define([
 
   //    return component;
   //  },
-
-
-
-
-
-  //  createComponents: function($cnt, cfg) {
-  //    var data = {};
-  //    var id;
-  //    var elems;
-  //    var c;
-  //    var obj;
-
-  //    elems = $cnt.find(config.component.selector);
-
-  //    elems.each(function(el) {
-  //      id = el.getAttribute(config.component.dataIdAttr);
-  //      c = cfg.instances[id];
-
-  //      obj = new components[c.type](el, c.params);
-
-  //      data[id] = obj;
-
-  //      $(el).data('$hybridatvId', id).data('$instance', obj);
-  //    });
-
-  //    return data;
-  //  },
-
 
   //  getHistory: function() {
   //    return history;
@@ -96,46 +40,6 @@ define([
   //    return this;
   //  },
 
-  //  getInstanceById: function(id) {
-  //    return instance[id];
-  //  },
-
-  //  getConfig: function() {
-  //    return config;
-  //  },
-
-
-  //  hide: function() {
-  //    // FIXME hide entire app-container
-  //    return this;
-  //  },
-
-  //  show: function() {
-  //    // FIXME show entire app-container
-  //    return this;
-  //  },
-  //};
-
-  //document.addEventListener('keydown', function(evt) {
-  //  trigger('keydown', evt);
-  //});
-
-  //window.addEventListener('hashchange', function(evt) {
-  //  hashchange(evt);
-
-  //
-  //});
-
-  //App.helper('Hybridatv', {
-  //  $: $,
-  //});
-
-  //resetConfig();
-
-  /*
-   *init app
-   *
-   */
 
   var params = {
     maskValues: {
@@ -149,8 +53,7 @@ define([
     },
   },
 
-    isAppRunning = false,
-    config, extension, handler, state,
+    isAppRunning, config, extension, handler, state,
     hashchangehandler, keydownhandler,
     isBack, instance, history, container, containerParent;
 
@@ -193,38 +96,22 @@ define([
     instance = {};
     history = [];
     state = {};
+    isAppRunning = false;
     isBack = false;
 
     hashchangehandler = function(evt) {
       var oldHash = evt.oldURL.split('#')[1];
       var newHash = evt.newURL.split('#')[1];
-      //var from, to, data;
 
       if (!isAppRunning || !newHash) {
         return;
       }
 
-      /*
-      from = url.parseHash(oldHash);
-      to = url.parseHash(newHash);
-
-      data = {
-        from: from,
-        to: to,
-      };
-
-      if (from.tmp !== to.tmp) {
-        trigger('tmpChange', data);
-      }
-      */
-
-      //TODO check if view is different and trigger
-
       if (config.enableCache && oldHash) {
         self.saveCurrentState(oldHash);
       }
 
-      self.browse(newHash, container);
+      self.browse(newHash, oldHash);
     };
 
     keydownhandler = function(evt) {
@@ -282,14 +169,7 @@ define([
     containerParent = container.parentNode;
 
     isAppRunning = true;
-    /*
-    if (!$container.s.length) {
-      throw {
-        message: 'Unable to find container in DOM',
-        name: 'InputError',
-      };
-    }
-    */
+    // TODO handle missing container scenario
 
     if (hash.length) {
       this.get(hash, container, function() {
@@ -334,15 +214,17 @@ define([
     return this;
   };
 
-  HybridaTV.prototype.getActiveComponent = function(cnt) {
-    // FIXME not cool
-    var match = cnt.find(config.activeSelector + ':first');
+  HybridaTV.prototype.goBack = function() {
+    var lastPage = history.pop();
 
-    if (match.s.length) {
-      return match.instance();
+    if (!lastPage) {
+      trigger('historyempty');
+      return false;
     }
 
-    return null;
+    isBack = true;
+
+    this.navigate(lastPage);
   };
 
   HybridaTV.prototype.setKeyset = function(val) {
@@ -398,7 +280,6 @@ define([
 
             className = cfg.dependencies[i].split('/').slice(-1);
 
-            console.log(cfg.dependencies);
             self.extend('component', className, constructor);
           }
 
@@ -406,59 +287,63 @@ define([
         });
       });
     }], function contentLoaded() {
-     // var components;
-     // var firstActiveComponent;
-
       cnt.innerHTML = html;
 
       self.setupTemplate(cnt, cfg);
-      /*
-      components = self.createComponents($cnt, cfg);
-
-      if (cfg.firstActiveId) {
-        firstActiveComponent = components[cfg.firstActiveId];
-        self.focusComponent(firstActiveComponent);
-      }
-      */
 
       done();
     });
   };
 
   HybridaTV.prototype.setupTemplate = function(cnt, cfg) {
+    //TODO use params
     var elems = sizzle('.hb-component', cnt);
-    console.log(elems);
     var len = elems.length;
     var i;
-    var x;
+    var el;
     var id;
+    var data;
+    var constructor;
 
     for (i = 0; i < len; i++) {
-      x = elems[i];
-      id = polyfil.getData(x, 'id');
-      console.log(cfg.instances[id]);
+      //TODO use params
+      el = elems[i];
+      id = polyfil.getData(el, 'id');
+      constructor = polyfil.getData(el, 'name');
+      data = cfg.instances[id];
+
+      //TODO in future this might be module or widget
+      new extension.component[constructor](el, data);
+    }
+
+    // TODO if there is no firstActiveComponent prop
+    if (elems.length) {
+      this.focus(elems[0]);
+    } else {
+      //elems[0].focus();
     }
   };
-
-  HybridaTV.prototype.focusComponent = function(component) {
-    try {
-      component.focus();
-    }
-    catch (e) {}
-    return this;
-  };
-
 
   HybridaTV.prototype.saveCurrentState = function(hash) {
+    var activeElement = document.activeElement;
+    var elems = [];
+    var len = container.children.length;
+    var i;
+
+    for (i = 0; i < len; i++) {
+      elems[i] = container.removeChild(container.children[0]);
+    }
+
     state[hash] = {
-      elem: container.cloneNode(true),
+      activeElement: activeElement,
+      elems: elems,
     };
   };
 
-  HybridaTV.prototype.browse = function(hash, done) {
-    this.get(hash, container, function($el) {
-      if (!isBack) {
-        history.push(hash);
+  HybridaTV.prototype.browse = function(hash, oldHash, done) {
+    this.get(hash, container, function() {
+      if (oldHash && !isBack) {
+        history.push(oldHash);
       } else {
         isBack = false;
       }
@@ -471,9 +356,10 @@ define([
         container: $el,
       });
       */
+      console.log(history);
 
       if (typeof done === 'function') {
-        done($el);
+        done();
       }
     });
     return this;
@@ -487,22 +373,31 @@ define([
     return state;
   };
 
+  HybridaTV.prototype.focus = function(node) {
+    if (node && node.nodeType === 1) {
+      node.focus();
+      return true;
+    }
+
+    return false;
+  };
+
   HybridaTV.prototype.get = function(hash, cnt, done) {
     var state = this.state(hash);
-    //var activeComponent;
 
     if (typeof state !== 'undefined') {
       // cache
       this.restoreState(cnt, state);
-      /*
-      activeComponent = this.getActiveComponent($cnt);
-      this.focusComponent(activeComponent);
-      */
+
+      this.focus(state.activeElement);
       finish();
     } else {
       this.loadNewContent(hash, cnt, finish);
     }
     function finish() {
+      trigger('viewchange', {
+        hash: hash,
+      });
 
       if (typeof done === 'function') {
         done();
@@ -511,11 +406,10 @@ define([
   };
 
   HybridaTV.prototype.restoreState = function(cnt, state) {
-    cnt.innerHTML = '';
-
-    // TODO verify this
-    while (state.elem.children.length) {
-      cnt.appendChild(state.elem.children[0]);
+    var len = state.elems.length;
+    var i;
+    for (i = 0; i < len; i++) {
+      cnt.appendChild(state.elems[i]);
     }
 
     return this;
