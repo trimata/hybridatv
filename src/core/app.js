@@ -1,15 +1,10 @@
 define([
-  'hybridatv/core/domtv',
   'hybridatv/core/hbbtv',
+  'hybridatv/libs/sizzle.min',
   'hybridatv/helpers/polyfil',
   'hybridatv/helpers/async',
-  'hybridatv/helpers/url',
-], function($, hbbtv, polyfil, async, url) {
+], function(hbbtv, sizzle, polyfil, async) {
   'use strict';
-
-  console.log($, async, url);
-  //var elemcfg = document.getElementById('oipfcfg');
-  //var appmgr = document.getElementById('appmgr');
   //var handler = {};
   //var helpers = {};
   //var components = {};
@@ -31,43 +26,19 @@ define([
   //var config = {};
 
   //function resetConfig() {
-  //  config = {
-  //
 
-  //
-  //
-  //
-  //
-
-  //
-  //
-  //
-  //
-  //    },
-
-  //  };
   //}
 
   //var isBack = false;
-  //var $container;
 
 
   //var App = {
-  //  setConfig: function(data) {
-  //    var prop;
 
-  //    for (prop in data) {
-  //      config[prop] = data[prop];
-  //    }
-
-  //    return this;
-  //  },
-
-  //  component: function(name, item) {
+  //  component: function(name, constructor) {
   //    var component = components[name];
 
   //    if (typeof component === 'undefined') {
-  //      components[name] = item;
+  //      components[name] = constructor;
   //      return this;
   //    }
 
@@ -75,22 +46,7 @@ define([
   //  },
 
 
-  //  getState: function(hash) {
-  //    hash = hash || window.location.hash;
 
-  //    return states[hash];
-  //  },
-
-
-  //  getActiveComponent: function($cnt) {
-  //    var match = $cnt.find(config.activeSelector + ':first');
-
-  //    if (match.s.length) {
-  //      return match.instance();
-  //    }
-
-  //    return null;
-  //  },
 
 
   //  createComponents: function($cnt, cfg) {
@@ -116,15 +72,6 @@ define([
   //    return data;
   //  },
 
-  //  saveState: function(hash, $cnt, cfg) {
-  //    states[hash] = {
-  //      config: cfg,
-  //      elem: $cnt,
-  //    };
-
-  //    return this;
-  //  },
-
 
   //  getHistory: function() {
   //    return history;
@@ -132,7 +79,7 @@ define([
 
   //  goBack: function(step) {
   //    var len = history.length;
-  //    var item;
+  //    var constructor;
 
   //    if (len <= 1) { return false; }
 
@@ -143,8 +90,8 @@ define([
   //    isBack = true;
 
   //    history.splice(-step);
-  //    item = history[len - step - 1];
-  //    window.location.hash = item;
+  //    constructor = history[len - step - 1];
+  //    window.location.hash = constructor;
 
   //    return this;
   //  },
@@ -160,13 +107,11 @@ define([
 
   //  hide: function() {
   //    // FIXME hide entire app-container
-  //    $container.hide();
   //    return this;
   //  },
 
   //  show: function() {
   //    // FIXME show entire app-container
-  //    $container.show();
   //    return this;
   //  },
   //};
@@ -178,34 +123,8 @@ define([
   //window.addEventListener('hashchange', function(evt) {
   //  hashchange(evt);
 
-  //  /* test-code */
-  //  App._hashchange(evt);
-  //  /* test-code-end */
+  //
   //});
-
-  //function hashchange(evt) {
-  //
-  //
-  //
-
-  //
-  //
-  //
-
-  //
-  //
-
-  //
-  //
-  //
-  //
-
-  //
-  //
-  //
-
-  //  App.browse(newHash.slice(1));
-  //}
 
   //App.helper('Hybridatv', {
   //  $: $,
@@ -231,9 +150,9 @@ define([
   },
 
     isAppRunning = false,
-    config = defaultConfig(),
-    extension, handler, state, hashchangehandler, keydownhandler,
-    isBack, elemcfg, appmgr, instance, history, $container;
+    config, extension, handler, state,
+    hashchangehandler, keydownhandler,
+    isBack, instance, history, container, containerParent;
 
   function trigger(eventName, params) {
     if (typeof handler[eventName] === 'function') {
@@ -243,7 +162,9 @@ define([
 
   function defaultConfig() {
     return {
-      defaultHash: 'home',
+      defaultHash: 'index',
+
+      enableCache: true,
 
       template: {
         dir: 'templates/',
@@ -262,21 +183,20 @@ define([
   function HybridaTV(cfg) {
     var self = this;
 
-    elemcfg = document.getElementById('oipfcfg');
-    appmgr = document.getElementById('appmgr');
     handler = {};
     extension = {
       helper: {},
       module: {},
       component: {},
     };
+    config = defaultConfig();
     instance = {};
     history = [];
     state = {};
     isBack = false;
 
     hashchangehandler = function(evt) {
-      //var oldHash = evt.oldURL.split('#')[1];
+      var oldHash = evt.oldURL.split('#')[1];
       var newHash = evt.newURL.split('#')[1];
       //var from, to, data;
 
@@ -298,14 +218,22 @@ define([
       }
       */
 
-      self.browse(newHash, $container);
+      //TODO check if view is different and trigger
+
+      if (config.enableCache && oldHash) {
+        self.saveCurrentState(oldHash);
+      }
+
+      self.browse(newHash, container);
     };
 
     keydownhandler = function(evt) {
-      trigger('keydown', evt);
+      if (isAppRunning) {
+        trigger('keydown', evt);
+      }
     };
 
-    this.config(cfg).helper('Hb', { $: $ });
+    this.config(cfg);
 
     window.addEventListener('hashchange', hashchangehandler);
     document.addEventListener('keydown', keydownhandler);
@@ -338,7 +266,6 @@ define([
       config[prop] = data[prop];
     }
 
-
     return this;
   };
 
@@ -346,32 +273,13 @@ define([
     return history;
   };
 
-  HybridaTV.prototype.extend = function(kind, name, obj) {
-    if (['helper', 'module', 'component'].indexOf(kind) > -1) {
-      if (typeof extension[kind][name] === 'undefined') {
-        extension[kind][name] = obj;
-      }
-    }
-    return this;
-  };
-
-  HybridaTV.prototype.getActiveComponent = function($cnt) {
-    // FIXME not cool
-    var match = $cnt.find(config.activeSelector + ':first');
-
-    if (match.s.length) {
-      return match.instance();
-    }
-
-    return null;
-  };
-
   HybridaTV.prototype.run = function() {
-    var hash = window.location.hash;
+    var hash = window.location.hash.slice(1);
 
     trigger('beforerun');
 
-    $container = $(config.container);
+    container = config.container;
+    containerParent = container.parentNode;
 
     isAppRunning = true;
     /*
@@ -384,7 +292,7 @@ define([
     */
 
     if (hash.length) {
-      this.get(hash, $container, function() {
+      this.get(hash, container, function() {
         trigger('initialviewready');
       });
     } else {
@@ -398,57 +306,6 @@ define([
     window.location.hash = hash;
 
     return this;
-  };
-
-  HybridaTV.prototype.loadNewContent = function(hash, $cnt, done) {
-    var self = this;
-    var html;
-    var cfg;
-
-    async.parallel([function getTemplate(over) {
-      async.get(config.template.dir + hash +
-      config.template.ext, {}, function(res) {
-        html = res;
-        over();
-      });
-    }, function getConfig(over) {
-      async.get(config.template.dir + hash + '.json',
-      {}, function(res) {
-        cfg = JSON.parse(res);
-
-        requirejs(cfg.dependencies, function() {
-          var len = arguments.length;
-          var i;
-          var item;
-          var className;
-
-          for (i = 0; i < len; i++) {
-            item = arguments[i];
-
-            className = item.prototype.type;
-
-            self.extend('component', className, item);
-          }
-
-          over();
-        });
-      });
-    }], function contentLoaded() {
-      var components;
-      var firstActiveComponent;
-
-      $cnt.html(html);
-
-      self.saveState(hash, $cnt, cfg);
-      components = self.createComponents($cnt, cfg);
-
-      if (cfg.firstActiveId) {
-        firstActiveComponent = components[cfg.firstActiveId];
-        self.focusComponent(firstActiveComponent);
-      }
-
-      done();
-    });
   };
 
   HybridaTV.prototype.on = function(evtName, fn) {
@@ -468,52 +325,24 @@ define([
     return this;
   };
 
-  HybridaTV.prototype.saveState = function(hash, $cnt, cfg) {
-    state[hash] = {
-      config: cfg,
-      elem: $cnt,
-    };
-
-    return this;
-  };
-
-  HybridaTV.prototype.focusComponent = function(component) {
-    try {
-      component.focus();
+  HybridaTV.prototype.extend = function(kind, name, obj) {
+    if (['helper', 'module', 'component'].indexOf(kind) > -1) {
+      if (typeof extension[kind][name] === 'undefined') {
+        extension[kind][name] = obj;
+      }
     }
-    catch (e) {}
     return this;
   };
 
+  HybridaTV.prototype.getActiveComponent = function(cnt) {
+    // FIXME not cool
+    var match = cnt.find(config.activeSelector + ':first');
 
-  HybridaTV.prototype.browse = function(hash, done) {
-    this.get(hash, $container, function($el) {
-      if (!isBack) {
-        history.push(hash);
-      } else {
-        isBack = false;
-      }
-
-      //FIXME
-      trigger('tmpReady', {
-        hash: hash,
-        tmp: url.parseHash(hash).tmp,
-        container: $el,
-      });
-
-      if (typeof done === 'function') {
-        done($el);
-      }
-    });
-    return this;
-  };
-
-  HybridaTV.prototype.state = function(name) {
-    if (arguments.length) {
-      return state[name];
+    if (match.s.length) {
+      return match.instance();
     }
 
-    return state;
+    return null;
   };
 
   HybridaTV.prototype.setKeyset = function(val) {
@@ -540,45 +369,157 @@ define([
     return this;
   };
 
-  HybridaTV.prototype.get = function(hash, $cnt, done) {
+  HybridaTV.prototype.loadNewContent = function(hash, cnt, done) {
+    var self = this;
+    var html;
+    var cfg;
+
+    async.parallel([function getTemplate(over) {
+      async.get(config.template.dir + hash +
+      config.template.ext, function(res) {
+        html = res;
+        over();
+      });
+    }, function getConfig(over) {
+      async.get(config.template.dir + hash + '.json',
+        function(res) {
+        cfg = res ? JSON.parse(res) : {
+          dependencies: [],
+        };
+
+        requirejs(cfg.dependencies, function() {
+          var len = arguments.length;
+          var i;
+          var constructor;
+          var className;
+
+          for (i = 0; i < len; i++) {
+            constructor = arguments[i];
+
+            className = cfg.dependencies[i].split('/').slice(-1);
+
+            console.log(cfg.dependencies);
+            self.extend('component', className, constructor);
+          }
+
+          over();
+        });
+      });
+    }], function contentLoaded() {
+     // var components;
+     // var firstActiveComponent;
+
+      cnt.innerHTML = html;
+
+      self.setupTemplate(cnt, cfg);
+      /*
+      components = self.createComponents($cnt, cfg);
+
+      if (cfg.firstActiveId) {
+        firstActiveComponent = components[cfg.firstActiveId];
+        self.focusComponent(firstActiveComponent);
+      }
+      */
+
+      done();
+    });
+  };
+
+  HybridaTV.prototype.setupTemplate = function(cnt, cfg) {
+    var elems = sizzle('.hb-component', cnt);
+    console.log(elems);
+    var len = elems.length;
+    var i;
+    var x;
+    var id;
+
+    for (i = 0; i < len; i++) {
+      x = elems[i];
+      id = polyfil.getData(x, 'id');
+      console.log(cfg.instances[id]);
+    }
+  };
+
+  HybridaTV.prototype.focusComponent = function(component) {
+    try {
+      component.focus();
+    }
+    catch (e) {}
+    return this;
+  };
+
+
+  HybridaTV.prototype.saveCurrentState = function(hash) {
+    state[hash] = {
+      elem: container.cloneNode(true),
+    };
+  };
+
+  HybridaTV.prototype.browse = function(hash, done) {
+    this.get(hash, container, function($el) {
+      if (!isBack) {
+        history.push(hash);
+      } else {
+        isBack = false;
+      }
+
+      //FIXME
+      /*
+      trigger('tmpReady', {
+        hash: hash,
+        tmp: url.parseHash(hash).tmp,
+        container: $el,
+      });
+      */
+
+      if (typeof done === 'function') {
+        done($el);
+      }
+    });
+    return this;
+  };
+
+  HybridaTV.prototype.state = function(name) {
+    if (arguments.length) {
+      return state[name];
+    }
+
+    return state;
+  };
+
+  HybridaTV.prototype.get = function(hash, cnt, done) {
     var state = this.state(hash);
-    var activeComponent;
+    //var activeComponent;
 
     if (typeof state !== 'undefined') {
       // cache
-      this.restoreState($cnt, state);
+      this.restoreState(cnt, state);
+      /*
       activeComponent = this.getActiveComponent($cnt);
       this.focusComponent(activeComponent);
-
+      */
       finish();
     } else {
-      this.loadNewContent(hash, $cnt, finish);
+      this.loadNewContent(hash, cnt, finish);
     }
     function finish() {
+
       if (typeof done === 'function') {
         done();
       }
     }
   };
 
-  HybridaTV.prototype.restoreState = function($cnt, state) {
-    $cnt.html('');
+  HybridaTV.prototype.restoreState = function(cnt, state) {
+    cnt.innerHTML = '';
 
-    state.elems.each(function(el) {
-      $cnt.s[0].appendChild(el);
-    });
+    // TODO verify this
+    while (state.elem.children.length) {
+      cnt.appendChild(state.elem.children[0]);
+    }
 
     return this;
   };
-
-  /*
-   *end init app
-   *
-   *
-   *
-   *
-   */
-
 
   return HybridaTV;
 });

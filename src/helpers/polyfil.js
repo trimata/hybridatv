@@ -5,6 +5,11 @@ define([], function() {
 
     var elem = document.getElementsByTagName('head')[0];
 
+    function dashesToCamelCase(str) {
+      return str.replace(/(\-)(.)/g, function() {
+        return arguments[2].toUpperCase();
+      });
+    }
     /**
      * Common used cross-browser methods
      * @exports helpers/polyfil
@@ -65,6 +70,21 @@ define([], function() {
         } else {
           evt.cancelBubble = true;
         }
+      },
+      /**
+       */
+      setData: elem.dataset ? function(el, key, val) {
+        el.dataset[dashesToCamelCase(key)] = val;
+      } : function(el, key, val) {
+        el.setAttribute('data-' + key, val);
+      },
+
+      /**
+       */
+      getData: elem.dataset ? function(el, key) {
+        return el.dataset[dashesToCamelCase(key)];
+      } : function(el, key) {
+        return el.getAttribute('data-' + key);
       },
       /**
        */
