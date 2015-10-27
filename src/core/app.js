@@ -63,6 +63,12 @@ define([
     }
   }
 
+  function defaultDeps() {
+    return {
+      dependencies: [],
+    };
+  }
+
   function defaultConfig() {
     return {
       defaultHash: 'index',
@@ -179,6 +185,8 @@ define([
       this.navigate(config.defaultHash);
     }
 
+    trigger('run');
+
     return this;
   };
 
@@ -265,9 +273,7 @@ define([
     }, function getConfig(over) {
       async.get(config.template.dir + hash + '.json',
         function(res) {
-        cfg = res ? JSON.parse(res) : {
-          dependencies: [],
-        };
+        cfg = res ? JSON.parse(res) : defaultDeps();
 
         requirejs(cfg.dependencies, function() {
           var len = arguments.length;
@@ -356,7 +362,6 @@ define([
         container: $el,
       });
       */
-      console.log(history);
 
       if (typeof done === 'function') {
         done();

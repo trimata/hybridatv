@@ -5,6 +5,8 @@
     baseUrl: '.',
     paths: {
       hybridatv: '//apps.hybrida.tv/framework/latest/src',
+      widgets  : '//apps.hybrida.tv/widgets',
+      modules  : '//apps.hybrida.tv/modules',
     },
   });
 
