@@ -284,7 +284,8 @@ define([
           for (i = 0; i < len; i++) {
             constructor = arguments[i];
 
-            className = cfg.dependencies[i].split('/').slice(-1);
+            className = constructor.prototype.name;
+            //className = cfg.dependencies[i].split('/').slice(-1);
 
             self.extend('component', className, constructor);
           }
