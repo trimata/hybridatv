@@ -17,30 +17,6 @@ define([
   //    return component;
   //  },
 
-  //  getHistory: function() {
-  //    return history;
-  //  },
-
-  //  goBack: function(step) {
-  //    var len = history.length;
-  //    var constructor;
-
-  //    if (len <= 1) { return false; }
-
-  //    if (typeof step !== 'number' || step < 1) {
-  //      step = 1;
-  //    }
-
-  //    isBack = true;
-
-  //    history.splice(-step);
-  //    constructor = history[len - step - 1];
-  //    window.location.hash = constructor;
-
-  //    return this;
-  //  },
-
-
   var params = {
     maskValues: {
       RED: 1,
@@ -49,8 +25,16 @@ define([
       BLUE: 8,
       NAVIGATION: 16,
       VCR: 32,
+      SCROLL: 64,
+      INFO: 128,
       NUMERIC: 256,
+      ALPHA: 512,
+      OTHER: 1024,
     },
+
+    componentClass: 'hb-component',
+    dataId: 'id',
+    dataName: 'name',
   },
 
     isAppRunning, config, extension, handler, state,
@@ -80,14 +64,10 @@ define([
         ext: '.html',
       },
 
-      component: {
-        selector: '.hb-component',
-        activeSelector: '.active',
-        dataIdAttr: 'data-id',
-      },
     };
   }
 
+  //TODO why don't we extend core Class?
 
   function HybridaTV(cfg) {
     var self = this;
@@ -285,7 +265,6 @@ define([
             constructor = arguments[i];
 
             className = constructor.prototype.name;
-            //className = cfg.dependencies[i].split('/').slice(-1);
 
             self.extend('component', className, constructor);
           }
@@ -303,8 +282,7 @@ define([
   };
 
   HybridaTV.prototype.setupTemplate = function(cnt, cfg) {
-    //TODO use params
-    var elems = sizzle('.hb-component', cnt);
+    var elems = sizzle('.' + params.componentClass, cnt);
     var len = elems.length;
     var i;
     var el;
@@ -313,10 +291,9 @@ define([
     var constructor;
 
     for (i = 0; i < len; i++) {
-      //TODO use params
       el = elems[i];
-      id = polyfil.getData(el, 'id');
-      constructor = polyfil.getData(el, 'name');
+      id = polyfil.getData(el, params.dataId);
+      constructor = polyfil.getData(el, params.dataName);
       data = cfg.instances[id];
 
       //TODO in future this might be module or widget

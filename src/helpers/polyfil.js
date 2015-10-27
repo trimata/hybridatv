@@ -63,6 +63,15 @@ define([], function() {
       },
       /**
        */
+      css: function(el, data) {
+        var prop;
+
+        for (prop in data) {
+          el.style[prop] = data[prop];
+        }
+      },
+      /**
+       */
       stopBubble: function(evt) {
         evt = evt || window.event;
         if (typeof evt.stopPropagation === 'function') {
