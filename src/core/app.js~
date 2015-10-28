@@ -389,12 +389,6 @@ define([
     }
   };
 
-  HybridaTV.prototype.trigger = function(evtName, data) {
-    trigger(evtName, data);
-
-    return this;
-  };
-
   HybridaTV.prototype.restoreState = function(cnt, state) {
     var len = state.elems.length;
     var i;

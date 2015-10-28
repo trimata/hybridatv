@@ -25,6 +25,16 @@ define([
       return parts.join('&');
     },
 
+    getParams: function(str) {
+      return str ? JSON.parse(
+        '{"' + str.replace(/&/g, '","').
+        replace(/=/g,'":"') + '"}',
+        function(key, value) {
+          return key === '' ?
+            value : decodeURIComponent(value);
+        }) : {};
+    },
+
 
     ///////////
 
