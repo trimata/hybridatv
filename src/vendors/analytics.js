@@ -5,12 +5,12 @@ define([
   'use strict';
 
   var hasCalledInit = false;
-  var timeoutMs = 10000;
   var lastSentIndex = -1;
   var eventsMaxSize = 1073741824;
   var events = [];
   var ts = new Date().getTime();
   var diffToServerTime;
+  var timeoutMs;
   var reportsURL;
   var analytics;
   var bgitvTimer;
@@ -47,10 +47,6 @@ define([
     return size;
   }
 
-  function verifyURL(url, success, error) {
-    async.get(url, {}, success, error);
-  }
-
   function send() {
     var len = events.length;
     var firstIndex = lastSentIndex + 1;
@@ -79,14 +75,13 @@ define([
   }
 
   analytics = {
-    init: function(url) {
+    init: function(url, time) {
       if (hasCalledInit) { return; }
 
-      verifyURL(url, function() {
-        reportsURL = url;
-        hasCalledInit = true;
-        send();
-      });
+      timeoutMs = time || 10000;
+      reportsURL = url;
+      hasCalledInit = true;
+      send();
     },
 
     ts: ts,
