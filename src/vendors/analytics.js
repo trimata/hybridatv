@@ -80,6 +80,8 @@ define([
 
   analytics = {
     init: function(url) {
+      if (hasCalledInit) { return; }
+
       verifyURL(url, function() {
         reportsURL = url;
         hasCalledInit = true;

@@ -71,7 +71,7 @@ define([
       req.send(data);
     },
 
-    jsonp: function(url, data, callback, context) {
+    jsonp: function(path, data, callback, context) {
       var name = '_jsonp_callback_' + (uniqueId++);
       var script = document.createElement('script');
       var queryString;
@@ -82,8 +82,8 @@ define([
       queryString = url.queryString(data);
 
       script.type = 'text/javascript';
-      script.src = url +
-        (url.indexOf('?') > -1 ? '&' : '?') + queryString;
+      script.src = path +
+        (path.indexOf('?') > -1 ? '&' : '?') + queryString;
 
       window[name] = function(data) {
         callback.call((context || window), data);
