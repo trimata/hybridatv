@@ -78,7 +78,7 @@ define([
       module: {},
       component: {},
     };
-    config = defaultConfig();
+    config = cfg || defaultConfig();
     instance = {};
     history = [];
     state = {};
@@ -105,8 +105,6 @@ define([
         trigger('keydown', evt);
       }
     };
-
-    this.config(cfg);
 
     window.addEventListener('hashchange', hashchangehandler);
     document.addEventListener('keydown', keydownhandler);
@@ -203,6 +201,7 @@ define([
   };
 
   HybridaTV.prototype.goBack = function() {
+    //TODO check out history back
     var lastPage = history.pop();
 
     if (!lastPage) {
@@ -264,7 +263,7 @@ define([
           for (i = 0; i < len; i++) {
             constructor = arguments[i];
 
-            className = constructor.prototype.name;
+            className = constructor.prototype.name.toLowerCase();
 
             //TODO in future this might be module or widget
             self.extend('component', className, constructor);
@@ -294,11 +293,11 @@ define([
     for (i = 0; i < len; i++) {
       el = elems[i];
       id = polyfil.getData(el, params.dataId);
-      constructor = polyfil.getData(el, params.dataName);
       data = cfg.instances[id];
+      constructor = data.type.toLowerCase();
 
       //TODO in future this might be module or widget
-      new extension.component[constructor](el, data);
+      new extension.component[constructor](el, data.params);
     }
 
     // TODO if there is no firstActiveComponent prop
