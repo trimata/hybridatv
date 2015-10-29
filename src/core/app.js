@@ -292,6 +292,8 @@ define([
 
     for (i = 0; i < len; i++) {
       el = elems[i];
+      //TODO use params
+      el.setAttribute('tabindex', '-1');
       id = polyfil.getData(el, params.dataId);
       data = cfg.instances[id];
       constructor = data.type.toLowerCase();
@@ -358,7 +360,10 @@ define([
 
   HybridaTV.prototype.focus = function(node) {
     if (node && node.nodeType === 1) {
-      node.focus();
+      //ugly but necessary
+      setTimeout(function() {
+        node.focus();
+      }, 0);
       return true;
     }
 

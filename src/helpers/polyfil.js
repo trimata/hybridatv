@@ -72,6 +72,17 @@ define([], function() {
       },
       /**
        */
+      isNode: function(obj) {
+        try {
+          return obj instanceof HTMLElement;
+        } catch(e) {
+          return (typeof obj==="object") &&
+            (obj.nodeType===1) && (typeof obj.style === "object") &&
+            (typeof obj.ownerDocument ==="object");
+        }
+      },
+      /**
+       */
       stopBubble: function(evt) {
         evt = evt || window.event;
         if (typeof evt.stopPropagation === 'function') {
