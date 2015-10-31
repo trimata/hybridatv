@@ -15,9 +15,9 @@
   requirejs.config({
     baseUrl: '.',
     paths: {
-      hybridatv: '//apps.hybrida.tv/framework/latest/src',
-      widgets  : '//apps.hybrida.tv/widgets',
-      modules  : '//apps.hybrida.tv/modules',
+      hybridatv: config.base + 'framework/latest/src',
+      widgets  : config.base + 'widgets',
+      modules  : config.base + 'modules',
     },
     packages: config.packages,
     config: params,

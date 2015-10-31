@@ -25,6 +25,12 @@ define([
       return parts.join('&');
     },
 
+    isSameOrigin: function(p1, p2) {
+      //TODO
+      console.log(p1, p2);
+      return false;
+    },
+
     getParams: function(str) {
       return str ? JSON.parse(
         '{"' + str.replace(/&/g, '","').

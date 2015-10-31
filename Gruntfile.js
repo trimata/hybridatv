@@ -122,7 +122,7 @@ module.exports = function(grunt) {
 
       transfer: {
         cmd: function(version, dir) {
-          return 'cp -rnv dist/' + version + ' ' + dir;
+          return dir ? 'cp -rnv dist/' + version + ' ' + dir : '';
         }
       },
 

@@ -71,6 +71,16 @@ define([
       req.send(data);
     },
 
+    json: function(path, data, callback, error) {
+      if (url.isSameOrigin(path, window.location.origin)) {
+        this.get(path, data, function(r) {
+          callback(JSON.parse(r));
+        }, error);
+      } else {
+        this.jsonp(path, data, callback);
+      }
+    },
+
     jsonp: function(path, data, callback, context) {
       var name = '_jsonp_callback_' + (uniqueId++);
       var script = document.createElement('script');
