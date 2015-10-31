@@ -140,7 +140,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('test', ['karma']);
 
-  grunt.registerTask('install', function() {
+  grunt.registerTask('setup', function() {
     grunt.task.run([
       'copy:libs',
     ]);
