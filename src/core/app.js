@@ -64,8 +64,8 @@ define([
       };
 
       this._keydownhandler = function(evt) {
-        if (this._isAppRunning) {
-          this.trigger('keydown', evt);
+        if (self._isAppRunning) {
+          self.trigger('keydown', evt);
         }
       };
 
@@ -113,7 +113,7 @@ define([
     },
 
     run: function() {
-      var data = url.getHashData(window.location.hash);
+      var data = url.getHashData(window.location.hash.slice(1));
       var self = this;
 
       this.trigger('beforerun');
@@ -166,8 +166,6 @@ define([
       if (CONST.types.indexOf(type) > -1) {
         if (typeof this._extension[type][name] === 'undefined') {
           this._extension[type][name] = obj;
-        } else {
-          console.log(this._extension, name, obj);
         }
       }
       return this;
@@ -323,9 +321,9 @@ define([
 
       this.extract(data.view, this._container, function() {
         if (oldHash && !self._isGoingBack) {
-          this._history.push(oldHash);
+          self._history.push(oldHash);
         } else {
-          this._isGoingBack = false;
+          self._isGoingBack = false;
         }
 
         //FIXME

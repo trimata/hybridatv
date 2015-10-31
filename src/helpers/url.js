@@ -44,7 +44,7 @@ define([
     getHashData: function(hash) {
       //TODO in future
       return {
-        view: hash.slice(1),
+        view: hash,
       };
     },
 
