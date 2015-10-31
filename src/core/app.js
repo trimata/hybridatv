@@ -13,10 +13,6 @@ define([
 
     htmlRegex: /data-type=\"(.+?)\"/g,
 
-    defaultDeps: {
-      dependencies: [],
-    },
-
     maskValues: {
       RED: 1,
       GREEN: 2,
@@ -264,27 +260,9 @@ define([
       }, function getConfig(over) {
         //TODO use async.json()
         async.get(self._config.template.dir + view + '.json',
-          function(res) {
-          cfg = res ? JSON.parse(res) : CONST.defaultDeps;
-
-          requirejs(cfg.dependencies, function() {
-            /*
-            var len = arguments.length;
-            var i;
-            var constructor;
-            var className;
-
-            for (i = 0; i < len; i++) {
-              constructor = arguments[i];
-
-              className = config.components[cfg.dependencies[i]];
-
-              //TODO in future this might be module or widget
-              self.extend('component', className, constructor);
-            }
-            */
-            over();
-          });
+        function(res) {
+          cfg = res ? JSON.parse(res) : {};
+          over();
         }, over);
       }], function contentLoaded() {
         cnt.innerHTML = html;
