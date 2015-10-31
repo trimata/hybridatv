@@ -116,19 +116,6 @@ define([
       return this;
     },
 
-    //TODO not sure we need this method
-    history: function() {
-      return this._history;
-    },
-
-    _get: function(type, name, val) {
-      if (arguments.length > 2) {
-        return this._extend(type, name, val);
-      }
-
-      return this._extension[type][name];
-    },
-
     run: function() {
       var data = url.getHashData(window.location.hash);
       var self = this;
