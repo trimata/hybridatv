@@ -1,6 +1,6 @@
 {
   "name": "hybridatv",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "the way to hbbtv",
   "main": "entry.js",
   "directories": {
