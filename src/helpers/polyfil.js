@@ -76,9 +76,9 @@ define([], function() {
         try {
           return obj instanceof HTMLElement;
         } catch(e) {
-          return (typeof obj==="object") &&
-            (obj.nodeType===1) && (typeof obj.style === "object") &&
-            (typeof obj.ownerDocument ==="object");
+          return (typeof obj === 'object') &&
+            (obj.nodeType === 1) && (typeof obj.style === 'object') &&
+            (typeof obj.ownerDocument === 'object');
         }
       },
       /**
@@ -93,12 +93,27 @@ define([], function() {
       },
       /**
        */
+      data: function(el) {
+        var attrs = el.attributes;
+        var output = {};
+        var len = attrs.length - 1;
+        var i;
+
+        for (i = len; i >= 0; i--) {
+          if (attrs[i].name.indexOf('data-') > -1) {
+            output[attrs[i].name.slice(5)] = attrs[i].value;
+          }
+        }
+
+        return output;
+      },
+      /**
+       */
       setData: elem.dataset ? function(el, key, val) {
         el.dataset[dashesToCamelCase(key)] = val;
       } : function(el, key, val) {
         el.setAttribute('data-' + key, val);
       },
-
       /**
        */
       getData: elem.dataset ? function(el, key) {

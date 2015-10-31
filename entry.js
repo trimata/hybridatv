@@ -1,6 +1,17 @@
 ;(function() {
   'use strict';
 
+  var _config = window.HYBRIDATV_CONFIG,
+      params  = {},
+      config;
+
+  if (typeof _config !== 'function') {
+    return;
+  }
+
+  config = _config();
+  params[config.url.entry] = config;
+
   requirejs.config({
     baseUrl: '.',
     paths: {
@@ -8,21 +19,18 @@
       widgets  : '//apps.hybrida.tv/widgets',
       modules  : '//apps.hybrida.tv/modules',
     },
+    packages: config.packages,
+    config: params,
   });
 
   requirejs([
     'hybridatv/core/hbbtv',
     'hybridatv/vendors/analytics',
   ], function(hbbtv, analytics) {
-    var config;
+    hbbtv.bootstrap();
 
-    if (typeof window.HYBRIDATV_CONFIG === 'function') {
-      hbbtv.bootstrap();
-      config = window.HYBRIDATV_CONFIG();
-
-      analytics.init(config.url.analytics);
-      requirejs([config.url.entry]);
-    }
+    analytics.init(config.url.analytics);
+    requirejs([config.url.entry]);
   });
 
 }());

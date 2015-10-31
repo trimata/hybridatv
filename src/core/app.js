@@ -6,17 +6,6 @@ define([
 ], function(hbbtv, sizzle, polyfil, async) {
   'use strict';
 
-  //  component: function(name, constructor) {
-  //    var component = components[name];
-
-  //    if (typeof component === 'undefined') {
-  //      components[name] = constructor;
-  //      return this;
-  //    }
-
-  //    return component;
-  //  },
-
   var params = {
     maskValues: {
       RED: 1,
@@ -32,9 +21,6 @@ define([
       OTHER: 1024,
     },
 
-    componentClass: 'hb-component',
-    dataId: 'id',
-    dataName: 'name',
   },
 
     isAppRunning, config, extension, handler, state,
@@ -64,6 +50,7 @@ define([
         ext: '.html',
       },
 
+      componentClass: 'hb-component',
     };
   }
 
@@ -76,7 +63,7 @@ define([
     extension = {
       helper: {},
       module: {},
-      component: {},
+      widget: {},
     };
     config = cfg || defaultConfig();
     instance = {};
@@ -124,6 +111,14 @@ define([
     }
 
     return extension.helper[name];
+  };
+
+  HybridaTV.prototype.widget = function(name, val) {
+    if (arguments.length > 1) {
+      return this.extend('widget', name, val);
+    }
+
+    return extension.widget[name];
   };
 
   HybridaTV.prototype.config = function(data) {
@@ -192,7 +187,7 @@ define([
   };
 
   HybridaTV.prototype.extend = function(kind, name, obj) {
-    if (['helper', 'module', 'component'].indexOf(kind) > -1) {
+    if (['helper', 'module', 'widget'].indexOf(kind) > -1) {
       if (typeof extension[kind][name] === 'undefined') {
         extension[kind][name] = obj;
       }
@@ -201,7 +196,7 @@ define([
   };
 
   HybridaTV.prototype.goBack = function() {
-    //TODO check out history back
+    //TODO check out history.back
     var lastPage = history.pop();
 
     if (!lastPage) {
@@ -213,6 +208,9 @@ define([
 
     this.navigate(lastPage);
   };
+
+  //TODO
+  HybridaTV.prototype.exit = function() {};
 
   HybridaTV.prototype.setKeyset = function(val) {
     var mask = 0;
@@ -238,7 +236,7 @@ define([
     return this;
   };
 
-  HybridaTV.prototype.loadNewContent = function(hash, cnt, done) {
+  HybridaTV.prototype._loadNewContent = function(hash, cnt, done) {
     var self = this;
     var html;
     var cfg;
@@ -246,13 +244,43 @@ define([
     async.parallel([function getTemplate(over) {
       async.get(config.template.dir + hash +
       config.template.ext, function(res) {
+        var myRegexp = /data-type=\"(.+?)\"/g;
+        var deps = [];
+        var classNames = [];
+        var match;
+
+        do {
+          match = myRegexp.exec(res);
+          if (match) {
+            classNames.push(match[1]);
+            deps.push(config.widgets[match[1]]);
+          }
+
+        } while(match);
+
+        requirejs(deps, function() {
+          var len = arguments.length;
+          var i;
+          var constructor;
+          var className;
+
+          for (i = 0; i < len; i++) {
+            constructor = arguments[i];
+            className = classNames[i];
+
+            //TODO in future this might be module or widget
+            self.widget(className, constructor);
+          }
+          over();
+        });
+
         html = res;
-        over();
       });
     }, function getConfig(over) {
       async.get(config.template.dir + hash + '.json',
         function(res) {
         cfg = res ? JSON.parse(res) : defaultDeps();
+        /*
 
         requirejs(cfg.dependencies, function() {
           var len = arguments.length;
@@ -263,7 +291,7 @@ define([
           for (i = 0; i < len; i++) {
             constructor = arguments[i];
 
-            className = constructor.prototype.name.toLowerCase();
+            className = config.components[cfg.dependencies[i]];
 
             //TODO in future this might be module or widget
             self.extend('component', className, constructor);
@@ -271,7 +299,9 @@ define([
 
           over();
         });
-      });
+        */
+        over();
+      }, over);
     }], function contentLoaded() {
       cnt.innerHTML = html;
 
@@ -282,24 +312,21 @@ define([
   };
 
   HybridaTV.prototype.setupTemplate = function(cnt, cfg) {
-    var elems = sizzle('.' + params.componentClass, cnt);
+    var elems = sizzle('.' + config.componentClass, cnt);
     var len = elems.length;
     var i;
     var el;
-    var id;
     var data;
     var constructor;
 
     for (i = 0; i < len; i++) {
       el = elems[i];
       //TODO use params
-      el.setAttribute('tabindex', '-1');
-      id = polyfil.getData(el, params.dataId);
-      data = cfg.instances[id];
-      constructor = data.type.toLowerCase();
+      data = polyfil.data(el);
+      constructor = data.type;
 
       //TODO in future this might be module or widget
-      new extension.component[constructor](el, data.params);
+      new extension.widget[constructor](el);
     }
 
     // TODO if there is no firstActiveComponent prop
@@ -324,6 +351,11 @@ define([
       activeElement: activeElement,
       elems: elems,
     };
+  };
+
+  //FIXME
+  HybridaTV.prototype.extension = function() {
+    return extension;
   };
 
   HybridaTV.prototype.browse = function(hash, oldHash, done) {
@@ -380,7 +412,7 @@ define([
       this.focus(state.activeElement);
       finish();
     } else {
-      this.loadNewContent(hash, cnt, finish);
+      this._loadNewContent(hash, cnt, finish);
     }
     function finish() {
       trigger('viewchange', {
