@@ -72,6 +72,23 @@ define([], function() {
       },
       /**
        */
+      getActiveElement: function() {
+        return document.activeElement;
+      },
+      /**
+       */
+      map: function(list, fn) {
+        var len = list.length;
+        var result = [];
+        var i;
+
+        for (i = 0; i < len; i++) {
+          result[i] = fn(list[i]);
+        }
+        return result;
+      },
+      /*
+       */
       isNode: function(obj) {
         try {
           return obj instanceof HTMLElement;

@@ -25,13 +25,13 @@ define([
       return parts.join('&');
     },
 
-    isSameOrigin: function(p1, p2) {
-      //TODO
-      console.log(p1, p2);
+    //TODO
+    isSameOrigin: function() {
       return false;
     },
 
     getParams: function(str) {
+      //TODO crashes if there is no key-value, e.g. index.php?123
       return str ? JSON.parse(
         '{"' + str.replace(/&/g, '","').
         replace(/=/g,'":"') + '"}',
@@ -41,6 +41,12 @@ define([
         }) : {};
     },
 
+    getHashData: function(hash) {
+      //TODO in future
+      return {
+        view: hash.slice(1),
+      };
+    },
 
     ///////////
 

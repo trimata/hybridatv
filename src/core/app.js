@@ -1,12 +1,22 @@
 define([
+  'hybridatv/core/class',
   'hybridatv/core/hbbtv',
   'hybridatv/libs/sizzle.min',
   'hybridatv/helpers/polyfil',
   'hybridatv/helpers/async',
-], function(hbbtv, sizzle, polyfil, async) {
+  'hybridatv/helpers/url',
+], function(Class, hbbtv, sizzle, polyfil, async, url) {
   'use strict';
 
-  var params = {
+  var CONST = {
+    types: ['helper', 'module', 'widget'],
+
+    htmlRegex: /data-type=\"(.+?)\"/g,
+
+    defaultDeps: {
+      dependencies: [],
+    },
+
     maskValues: {
       RED: 1,
       GREEN: 2,
@@ -21,425 +31,410 @@ define([
       OTHER: 1024,
     },
 
-  },
-
-    isAppRunning, config, extension, handler, state,
-    hashchangehandler, keydownhandler,
-    isBack, instance, history, container, containerParent;
-
-  function trigger(eventName, params) {
-    if (typeof handler[eventName] === 'function') {
-      handler[eventName](params);
-    }
-  }
-
-  function defaultDeps() {
-    return {
-      dependencies: [],
-    };
-  }
-
-  function defaultConfig() {
-    return {
-      defaultHash: 'index',
-
-      enableCache: true,
-
-      template: {
-        dir: 'templates/',
-        ext: '.html',
-      },
-
-      componentClass: 'hb-component',
-    };
-  }
-
-  //TODO why don't we extend core Class?
-
-  function HybridaTV(cfg) {
-    var self = this;
-
-    handler = {};
-    extension = {
-      helper: {},
-      module: {},
-      widget: {},
-    };
-    config = cfg || defaultConfig();
-    instance = {};
-    history = [];
-    state = {};
-    isAppRunning = false;
-    isBack = false;
-
-    hashchangehandler = function(evt) {
-      var oldHash = evt.oldURL.split('#')[1];
-      var newHash = evt.newURL.split('#')[1];
-
-      if (!isAppRunning || !newHash) {
-        return;
-      }
-
-      if (config.enableCache && oldHash) {
-        self.saveCurrentState(oldHash);
-      }
-
-      self.browse(newHash, oldHash);
-    };
-
-    keydownhandler = function(evt) {
-      if (isAppRunning) {
-        trigger('keydown', evt);
-      }
-    };
-
-    window.addEventListener('hashchange', hashchangehandler);
-    document.addEventListener('keydown', keydownhandler);
-  }
-
-  HybridaTV.prototype.destroy = function() {
-    window.removeEventListener('hashchange', hashchangehandler);
-    document.removeEventListener('keydown', keydownhandler);
-    isAppRunning = false;
-
-    trigger('destroy');
   };
 
-  HybridaTV.prototype.helper = function(name, val) {
-    if (arguments.length > 1) {
-      return this.extend('helper', name, val);
-    }
+  var HybridaTV = Class.extend({
+    init: function(config, packages) {
+      var self = this;
 
-    return extension.helper[name];
-  };
+      this._config = config;
+      this._packages = packages;
+      this._history = [];
+      this._states = {};
+      this._handler = {};
 
-  HybridaTV.prototype.widget = function(name, val) {
-    if (arguments.length > 1) {
-      return this.extend('widget', name, val);
-    }
+      this._isGoingBack = false;
+      this._isAppRunning = false;
 
-    return extension.widget[name];
-  };
-
-  HybridaTV.prototype.config = function(data) {
-    var prop;
-
-    if (!arguments.length) {
-      return config;
-    }
-
-    for (prop in data) {
-      config[prop] = data[prop];
-    }
-
-    return this;
-  };
-
-  HybridaTV.prototype.history = function() {
-    return history;
-  };
-
-  HybridaTV.prototype.run = function() {
-    var hash = window.location.hash.slice(1);
-
-    trigger('beforerun');
-
-    container = config.container;
-    containerParent = container.parentNode;
-
-    isAppRunning = true;
-    // TODO handle missing container scenario
-
-    if (hash.length) {
-      this.get(hash, container, function() {
-        trigger('initialviewready');
-      });
-    } else {
-      this.navigate(config.defaultHash);
-    }
-
-    trigger('run');
-
-    return this;
-  };
-
-  HybridaTV.prototype.navigate = function(hash) {
-    window.location.hash = hash;
-
-    return this;
-  };
-
-  HybridaTV.prototype.on = function(evtName, fn) {
-    var oldHandler = handler[evtName];
-
-    if (typeof oldHandler === 'function') {
-      handler[evtName] = function(evt) {
-        oldHandler(evt);
-        fn(evt);
+      this._extension = {
+        helper: {},
+        module: {},
+        widget: {},
       };
-    } else {
-      handler[evtName] = function(evt) {
-        fn(evt);
+
+      this._hashchangehandler = function(evt) {
+        var oldHash = evt.oldURL.split('#')[1];
+        var newHash = evt.newURL.split('#')[1];
+
+        if (!self._isAppRunning || !newHash) {
+          return;
+        }
+
+        if (config.enableCache && oldHash) {
+          self._saveCurrentState(oldHash);
+        }
+
+        self.browse(newHash, oldHash);
       };
-    }
 
-    return this;
-  };
+      this._keydownhandler = function(evt) {
+        if (this._isAppRunning) {
+          this.trigger('keydown', evt);
+        }
+      };
 
-  HybridaTV.prototype.extend = function(kind, name, obj) {
-    if (['helper', 'module', 'widget'].indexOf(kind) > -1) {
-      if (typeof extension[kind][name] === 'undefined') {
-        extension[kind][name] = obj;
+      window.addEventListener('hashchange', this._hashchangehandler);
+      document.addEventListener('keydown', this._keydownhandler);
+    },
+
+    destroy: function() {
+      window.removeEventListener('hashchange', this._hashchangehandler);
+      document.removeEventListener('keydown', this._keydownhandler);
+      this._isAppRunning = false;
+
+      //TODO add before destroy
+      this.trigger('destroy');
+    },
+
+    helper: function(name, val) {
+      if (arguments.length > 1) {
+        return this._extend('helper', name, val);
       }
-    }
-    return this;
-  };
 
-  HybridaTV.prototype.goBack = function() {
-    //TODO check out history.back
-    var lastPage = history.pop();
+      return this._extension.helper[name];
+    },
 
-    if (!lastPage) {
-      trigger('historyempty');
-      return false;
-    }
+    widget: function(name, val) {
+      if (arguments.length > 1) {
+        return this._extend('widget', name, val);
+      }
 
-    isBack = true;
+      return this._extension.widget[name];
+    },
 
-    this.navigate(lastPage);
-  };
+    config: function(data) {
+      var prop;
 
-  //TODO
-  HybridaTV.prototype.exit = function() {};
+      if (!arguments.length) {
+        return this._config;
+      }
 
-  HybridaTV.prototype.setKeyset = function(val) {
-    var mask = 0;
-    var len;
-    var i;
-    var value;
+      for (prop in data) {
+        this._config[prop] = data[prop];
+      }
 
-    if (polyfil.isArray(val)) {
-      len = val.length;
+      return this;
+    },
 
-      for (i = 0; i < len; i++) {
-        if (typeof val[i] === 'string') {
-          value = params.maskValues[val[i].toUpperCase()] || 0;
-          mask += value;
+    //TODO not sure we need this method
+    history: function() {
+      return this._history;
+    },
+
+    _get: function(type, name, val) {
+      if (arguments.length > 2) {
+        return this._extend(type, name, val);
+      }
+
+      return this._extension[type][name];
+    },
+
+    run: function() {
+      var data = url.getHashData(window.location.hash);
+      var self = this;
+
+      this.trigger('beforerun');
+
+      this._container = this._config.container;
+      this._containerParent = this._container.parentNode;
+
+      this._isAppRunning = true;
+      // TODO handle missing container scenario
+
+      if (data.view.length) {
+        this.extract(data.view, this._container, function() {
+          self.trigger('initialviewready');
+        });
+      } else {
+        this.navigate(this._config.defaultView);
+      }
+
+      this.trigger('run');
+
+      return this;
+    },
+
+    navigate: function(hash) {
+      //TODO add success and error callbacks
+
+      window.location.hash = hash;
+
+      return this;
+    },
+
+    on: function(evtName, fn) {
+      var oldHandler = this._handler[evtName];
+
+      if (typeof oldHandler === 'function') {
+        this._handler[evtName] = function(evt) {
+          oldHandler(evt);
+          fn(evt);
+        };
+      } else {
+        this._handler[evtName] = function(evt) {
+          fn(evt);
+        };
+      }
+
+      return this;
+    },
+
+    _extend: function(type, name, obj) {
+      if (CONST.types.indexOf(type) > -1) {
+        if (typeof this._extension[type][name] === 'undefined') {
+          this._extension[type][name] = obj;
+        } else {
+          console.log(this._extension, name, obj);
         }
       }
-    } else {
-      mask = parseInt(val, 10) || 0;
-    }
+      return this;
+    },
 
-    hbbtv.setKeyset(mask);
+    goBack: function() {
+      //TODO check out history.back
+      var lastPage = this._history.pop();
 
-    return this;
-  };
+      if (!lastPage) {
+        this.trigger('historyempty');
+        return false;
+      }
 
-  HybridaTV.prototype._loadNewContent = function(hash, cnt, done) {
-    var self = this;
-    var html;
-    var cfg;
+      this._isGoingBack = true;
 
-    async.parallel([function getTemplate(over) {
-      async.get(config.template.dir + hash +
-      config.template.ext, function(res) {
-        var myRegexp = /data-type=\"(.+?)\"/g;
-        var deps = [];
-        var classNames = [];
-        var match;
+      return this.navigate(lastPage);
+    },
 
-        do {
-          match = myRegexp.exec(res);
-          if (match) {
-            classNames.push(match[1]);
-            deps.push(config.widgets[match[1]]);
+    setKeyset: function(val) {
+      var mask = 0;
+      var len;
+      var i;
+      var value;
+
+      if (polyfil.isArray(val)) {
+        len = val.length;
+
+        for (i = 0; i < len; i++) {
+          if (typeof val[i] === 'string') {
+            value = CONST.maskValues[val[i].toUpperCase()] || 0;
+            mask += value;
           }
+        }
+      } else {
+        mask = parseInt(val, 10) || 0;
+      }
 
-        } while(match);
+      hbbtv.setKeyset(mask);
 
-        requirejs(deps, function() {
-          var len = arguments.length;
-          var i;
-          var constructor;
-          var className;
+      return this;
+    },
 
-          for (i = 0; i < len; i++) {
-            constructor = arguments[i];
-            className = classNames[i];
+    exit: function() {
 
-            //TODO in future this might be module or widget
-            self.widget(className, constructor);
-          }
-          over();
+    },
+
+    _loadNewContent: function(view, cnt, done) {
+      var self = this;
+      var html;
+      var cfg;
+
+      async.parallel([function getTemplate(over) {
+        async.get(self._config.template.dir + view +
+        self._config.template.ext, function(res) {
+          var myRegexp = new RegExp(CONST.htmlRegex);
+          var deps = [];
+          var classNames = [];
+          var match;
+
+          do {
+            match = myRegexp.exec(res);
+            if (match) {
+              classNames.push(match[1]);
+              deps.push(self._packages[match[1]]);
+            }
+
+          } while(match);
+
+          requirejs(polyfil.map(deps, function(el) {
+            return el.path;
+          }), function() {
+            var len = arguments.length;
+            var i;
+            var constructor;
+            var className;
+
+            for (i = 0; i < len; i++) {
+              constructor = arguments[i];
+              className = classNames[i];
+
+              //TODO in future this might be module or widget
+              self.widget(className, constructor);
+            }
+            over();
+          });
+
+          html = res;
         });
+      }, function getConfig(over) {
+        //TODO use async.json()
+        async.get(self._config.template.dir + view + '.json',
+          function(res) {
+          cfg = res ? JSON.parse(res) : CONST.defaultDeps;
 
-        html = res;
+          requirejs(cfg.dependencies, function() {
+            /*
+            var len = arguments.length;
+            var i;
+            var constructor;
+            var className;
+
+            for (i = 0; i < len; i++) {
+              constructor = arguments[i];
+
+              className = config.components[cfg.dependencies[i]];
+
+              //TODO in future this might be module or widget
+              self.extend('component', className, constructor);
+            }
+            */
+            over();
+          });
+        }, over);
+      }], function contentLoaded() {
+        cnt.innerHTML = html;
+
+        self._setupTemplate(cnt, cfg);
+
+        done();
       });
-    }, function getConfig(over) {
-      async.get(config.template.dir + hash + '.json',
-        function(res) {
-        cfg = res ? JSON.parse(res) : defaultDeps();
+    },
+
+    _setupTemplate: function(cnt, cfg) {
+      var elems = sizzle('.' + this._config.componentClass, cnt);
+      var len = elems.length;
+      var i;
+      var el;
+      var data;
+      var constructor;
+      var type;
+
+      for (i = 0; i < len; i++) {
+        el = elems[i];
+
+        data = polyfil.data(el);
+        constructor = data.type;
+        type = this._packages[constructor].type;
+
+        new this._extension[type][constructor](el, cfg);
+      }
+
+      // TODO if there is no firstActiveComponent prop
+      if (elems.length) {
+        this.focusNode(elems[0]);
+      } else {
+        //elems[0].focus();
+      }
+    },
+
+    _saveCurrentState: function(view) {
+      var activeElement = polyfil.getActiveElement();
+      var elems = [];
+      var len = this._container.children.length;
+      var i;
+
+      for (i = 0; i < len; i++) {
+        elems[i] = this._container.removeChild(
+          this._container.children[0]);
+      }
+
+      this._states[view] = {
+        activeElement: activeElement,
+        elems: elems,
+      };
+    },
+
+    browse: function(newHash, oldHash, done) {
+      var data = url.getHashData(newHash);
+      var self = this;
+
+      this.extract(data.view, this._container, function() {
+        if (oldHash && !self._isGoingBack) {
+          this._history.push(oldHash);
+        } else {
+          this._isGoingBack = false;
+        }
+
+        //FIXME
         /*
-
-        requirejs(cfg.dependencies, function() {
-          var len = arguments.length;
-          var i;
-          var constructor;
-          var className;
-
-          for (i = 0; i < len; i++) {
-            constructor = arguments[i];
-
-            className = config.components[cfg.dependencies[i]];
-
-            //TODO in future this might be module or widget
-            self.extend('component', className, constructor);
-          }
-
-          over();
+        trigger('tmpReady', {
+          hash: hash,
+          tmp: url.parseHash(hash).tmp,
+          container: $el,
         });
         */
-        over();
-      }, over);
-    }], function contentLoaded() {
-      cnt.innerHTML = html;
 
-      self.setupTemplate(cnt, cfg);
+        if (typeof done === 'function') {
+          done();
+        }
+      });
 
-      done();
-    });
-  };
+      return this;
+    },
 
-  HybridaTV.prototype.setupTemplate = function(cnt, cfg) {
-    var elems = sizzle('.' + config.componentClass, cnt);
-    var len = elems.length;
-    var i;
-    var el;
-    var data;
-    var constructor;
+    focusNode: function(node) {
+      if (polyfil.isNode(node)) {
+        //ugly but necessary
+        setTimeout(function() {
+          node.focus();
+        }, 0);
+      }
 
-    for (i = 0; i < len; i++) {
-      el = elems[i];
-      //TODO use params
-      data = polyfil.data(el);
-      constructor = data.type;
+      return this;
+    },
 
-      //TODO in future this might be module or widget
-      new extension.widget[constructor](el);
-    }
+    extract: function(view, cnt, done) {
+      var state = this._states[view];
+      var self = this;
 
-    // TODO if there is no firstActiveComponent prop
-    if (elems.length) {
-      this.focus(elems[0]);
-    } else {
-      //elems[0].focus();
-    }
-  };
+      if (typeof state !== 'undefined') {
+        // cache
+        this._restoreState(cnt, state);
 
-  HybridaTV.prototype.saveCurrentState = function(hash) {
-    var activeElement = document.activeElement;
-    var elems = [];
-    var len = container.children.length;
-    var i;
-
-    for (i = 0; i < len; i++) {
-      elems[i] = container.removeChild(container.children[0]);
-    }
-
-    state[hash] = {
-      activeElement: activeElement,
-      elems: elems,
-    };
-  };
-
-  //FIXME
-  HybridaTV.prototype.extension = function() {
-    return extension;
-  };
-
-  HybridaTV.prototype.browse = function(hash, oldHash, done) {
-    this.get(hash, container, function() {
-      if (oldHash && !isBack) {
-        history.push(oldHash);
+        this.focusNode(state.activeElement);
+        finish();
       } else {
-        isBack = false;
+        this._loadNewContent(view, cnt, finish);
       }
 
-      //FIXME
-      /*
-      trigger('tmpReady', {
-        hash: hash,
-        tmp: url.parseHash(hash).tmp,
-        container: $el,
-      });
-      */
+      function finish() {
+        self.trigger('viewchange', {
+          view: view,
+        });
 
-      if (typeof done === 'function') {
-        done();
+        if (typeof done === 'function') {
+          done();
+        }
       }
-    });
-    return this;
-  };
+    },
 
-  HybridaTV.prototype.state = function(name) {
-    if (arguments.length) {
-      return state[name];
-    }
-
-    return state;
-  };
-
-  HybridaTV.prototype.focus = function(node) {
-    if (node && node.nodeType === 1) {
-      //ugly but necessary
-      setTimeout(function() {
-        node.focus();
-      }, 0);
-      return true;
-    }
-
-    return false;
-  };
-
-  HybridaTV.prototype.get = function(hash, cnt, done) {
-    var state = this.state(hash);
-
-    if (typeof state !== 'undefined') {
-      // cache
-      this.restoreState(cnt, state);
-
-      this.focus(state.activeElement);
-      finish();
-    } else {
-      this._loadNewContent(hash, cnt, finish);
-    }
-    function finish() {
-      trigger('viewchange', {
-        hash: hash,
-      });
-
-      if (typeof done === 'function') {
-        done();
+    trigger: function(evtName, data) {
+      if (typeof this._handler[evtName] === 'function') {
+        this._handler[evtName](data);
       }
-    }
-  };
 
-  HybridaTV.prototype.trigger = function(evtName, data) {
-    trigger(evtName, data);
+      return this;
+    },
 
-    return this;
-  };
+    _restoreState: function(cnt, state) {
+      var len = state.elems.length;
+      var i;
+      for (i = 0; i < len; i++) {
+        cnt.appendChild(state.elems[i]);
+      }
 
-  HybridaTV.prototype.restoreState = function(cnt, state) {
-    var len = state.elems.length;
-    var i;
-    for (i = 0; i < len; i++) {
-      cnt.appendChild(state.elems[i]);
-    }
+      return this;
+    },
 
-    return this;
-  };
+  });
 
   return HybridaTV;
 });

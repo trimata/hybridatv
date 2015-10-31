@@ -9,6 +9,18 @@
     return;
   }
 
+  function getModulePaths(packages) {
+    var result = [];
+    var i = 0;
+    var prop;
+
+    for (prop in packages) {
+      result[i++] = packages[prop].path;
+    }
+
+    return result;
+  }
+
   config = _config();
   params[config.url.entry] = config;
 
@@ -19,7 +31,7 @@
       widgets  : config.url.widgets,
       modules  : config.url.modules,
     },
-    packages: config.packages,
+    packages: getModulePaths(config.packages),
     config: params,
   });
 

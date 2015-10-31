@@ -21,7 +21,7 @@ grunt build:[major|minor|patch]
 ### Deploy task
 
 ```shell
-grunt deploy --dir=<dir> [--message=<msg>] [--update=major|minor|patch]
+grunt deploy [--dir=<dir>] [--message=<msg>] [--update=major|minor|patch]
 ```
 
 ### Basic usage
