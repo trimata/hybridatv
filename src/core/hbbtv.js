@@ -4,6 +4,7 @@ define(function() {
   var media = document.getElementById('media-player');
   var elemcfg = document.getElementById('oipfcfg');
   var appmgr = document.getElementById('appmgr');
+  var currentKeyset = -1;
 
   function initMedia() {
     try {
@@ -44,6 +45,10 @@ define(function() {
   function setKeyset(mask) {
     var app;
 
+    if (currentKeyset === mask) {
+      return;
+    }
+
     try {
       elemcfg.keyset.value = mask;
     } catch (e) {}
@@ -56,6 +61,8 @@ define(function() {
       app = appmgr.getOwnerApplication(document);
       app.privateData.keyset.setValue(mask);
     } catch (e) {}
+
+    currentKeyset = mask;
   }
 
   return {

@@ -278,10 +278,11 @@ define([
         if (elems.length) {
           target = elems[0];
         } else {
+          target = null;
           //elems[0].focus();
         }
 
-        self.DOMInstance(target).focus();
+        self._focus(target);
 
         if (typeof done === 'function') {
           done();
@@ -289,6 +290,21 @@ define([
       });
 
       return this;
+    },
+
+    _focus: function(el) {
+      var wrapper;
+
+      if (!polyfil.isNode(el)) {
+        return false;
+      }
+
+      wrapper = this.DOMInstance(el);
+
+      if (typeof wrapper !== 'undefined' &&
+      typeof wrapper.focus === 'function') {
+        wrapper.focus();
+      }
     },
 
     _saveCurrentState: function(view) {
@@ -352,8 +368,8 @@ define([
       if (typeof state !== 'undefined') {
         // cache
         this._restoreState(cnt, state);
+        this._focus(state.activeElement);
 
-        this.focusNode(state.activeElement);
         finish();
       } else {
         this._loadNewContent(view, cnt, finish);
