@@ -122,7 +122,7 @@ module.exports = function(grunt) {
 
       transfer: {
         cmd: function(version, dir) {
-          return dir ? 'cp -rnv dist/' + version + ' ' + dir : '';
+          return 'cp -rnv dist/' + version + ' ' + dir;
         }
       },
 
@@ -189,16 +189,24 @@ module.exports = function(grunt) {
   }
 
   grunt.registerTask('deploy', function() {
-    var dir = grunt.option('dir') || '';
+    var dir = grunt.option('dir') || false;
+    var tag = grunt.option('tag') || false;
     var newVersion = getNextVersion(getVersion(), grunt.option('update'));
     var msg = grunt.option('message') || 'Update to v' + newVersion;
-
-    grunt.task.run([
+    var tasks = [
       'build:' + newVersion + ':no-suffix',
       'exec:commit:' + msg,
-      'exec:tag:' + newVersion,
-      'exec:transfer:' + newVersion + ':' + dir,
-    ]);
+    ];
+
+    if (dir) {
+      tasks.push('exec:transfer:' + newVersion + ':' + dir);
+    }
+
+    if (tag) {
+      tasks.push('exec:tag:' + newVersion);
+    }
+
+    grunt.task.run(tasks);
 
   });
 };
