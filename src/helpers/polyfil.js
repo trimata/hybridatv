@@ -118,7 +118,8 @@ define([], function() {
 
         for (i = len; i >= 0; i--) {
           if (attrs[i].name.indexOf('data-') > -1) {
-            output[attrs[i].name.slice(5)] = attrs[i].value;
+            output[dashesToCamelCase(attrs[i].name.slice(5))] = attrs[i].
+              value;
           }
         }
 

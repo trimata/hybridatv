@@ -1,33 +1,13 @@
 define([
   'hybridatv/core/class',
+  'hybridatv/settings',
   'hybridatv/core/hbbtv',
   'hybridatv/libs/sizzle.min',
   'hybridatv/helpers/polyfil',
   'hybridatv/helpers/async',
   'hybridatv/helpers/url',
-], function(Class, hbbtv, sizzle, polyfil, async, url) {
+], function(Class, settings, hbbtv, sizzle, polyfil, async, url) {
   'use strict';
-
-  var CONST = {
-    types: ['helper', 'module', 'widget'],
-
-    htmlRegex: /data-type=\"(.+?)\"/g,
-
-    maskValues: {
-      RED: 1,
-      GREEN: 2,
-      YELLOW: 4,
-      BLUE: 8,
-      NAVIGATION: 16,
-      VCR: 32,
-      SCROLL: 64,
-      INFO: 128,
-      NUMERIC: 256,
-      ALPHA: 512,
-      OTHER: 1024,
-    },
-
-  };
 
   var HybridaTV = Class.extend({
     init: function(config, packages) {
@@ -44,8 +24,7 @@ define([
 
       this._extension = {
         helper: {},
-        module: {},
-        widget: {},
+        component: {},
       };
 
       this._hashchangehandler = function(evt) {
@@ -60,7 +39,7 @@ define([
           self._saveCurrentState(oldHash);
         }
 
-        self.browse(newHash, oldHash);
+        self._browse(newHash, oldHash);
       };
 
       this._keydownhandler = function(evt) {
@@ -90,12 +69,12 @@ define([
       return this._extension.helper[name];
     },
 
-    widget: function(name, val) {
+    component: function(name, val) {
       if (arguments.length > 1) {
-        return this._extend('widget', name, val);
+        return this._extend('component', name, val);
       }
 
-      return this._extension.widget[name];
+      return this._extension.component[name];
     },
 
     config: function(data) {
@@ -125,7 +104,7 @@ define([
       // TODO handle missing container scenario
 
       if (data.view.length) {
-        this.extract(data.view, this._container, function() {
+        this.get(data.view, this._container, function() {
           self.trigger('initialviewready');
         });
       } else {
@@ -163,7 +142,7 @@ define([
     },
 
     _extend: function(type, name, obj) {
-      if (CONST.types.indexOf(type) > -1) {
+      if (settings.types.indexOf(type) > -1) {
         if (typeof this._extension[type][name] === 'undefined') {
           this._extension[type][name] = obj;
         }
@@ -196,7 +175,7 @@ define([
 
         for (i = 0; i < len; i++) {
           if (typeof val[i] === 'string') {
-            value = CONST.maskValues[val[i].toUpperCase()] || 0;
+            value = settings.maskValues[val[i].toUpperCase()] || 0;
             mask += value;
           }
         }
@@ -209,9 +188,7 @@ define([
       return this;
     },
 
-    exit: function() {
-
-    },
+    exit: function() {},
 
     _loadNewContent: function(view, cnt, done) {
       var self = this;
@@ -221,39 +198,9 @@ define([
       async.parallel([function getTemplate(over) {
         async.get(self._config.template.dir + view +
         self._config.template.ext, function(res) {
-          var myRegexp = new RegExp(CONST.htmlRegex);
-          var deps = [];
-          var classNames = [];
-          var match;
-
-          do {
-            match = myRegexp.exec(res);
-            if (match) {
-              classNames.push(match[1]);
-              deps.push(self._packages[match[1]]);
-            }
-
-          } while(match);
-
-          requirejs(polyfil.map(deps, function(el) {
-            return el.path;
-          }), function() {
-            var len = arguments.length;
-            var i;
-            var constructor;
-            var className;
-
-            for (i = 0; i < len; i++) {
-              constructor = arguments[i];
-              className = classNames[i];
-
-              //TODO in future this might be module or widget
-              self.widget(className, constructor);
-            }
-            over();
-          });
 
           html = res;
+          over();
         });
       }, function getConfig(over) {
         //TODO use async.json()
@@ -263,39 +210,85 @@ define([
           over();
         }, over);
       }], function contentLoaded() {
-        cnt.innerHTML = html;
-
-        self._setupTemplate(cnt, cfg);
-
-        done();
+        self.setup(cnt, html, cfg, done);
       });
     },
 
-    _setupTemplate: function(cnt, cfg) {
-      var elems = sizzle('.' + this._config.componentClass, cnt);
-      var len = elems.length;
-      var i;
-      var el;
+    DOMInstance: function(el) {
+      return el[settings.domProperty];
+    },
+
+    _getDeps: function(html) {
+      var myRegexp = new RegExp(settings.htmlRegex);
+      var deps = [];
+      var match;
       var data;
-      var constructor;
-      var type;
 
-      for (i = 0; i < len; i++) {
-        el = elems[i];
+      do {
+        match = myRegexp.exec(html);
+        if (match) {
+          data = this._packages[match[1]];
+          data.name = match[1];
+          deps.push(data);
+        }
 
-        data = polyfil.data(el);
-        constructor = data.type;
-        type = this._packages[constructor].type;
+      } while(match);
 
-        new this._extension[type][constructor](el, cfg);
-      }
+      return deps;
+    },
 
-      // TODO if there is no firstActiveComponent prop
-      if (elems.length) {
-        this.focusNode(elems[0]);
-      } else {
-        //elems[0].focus();
-      }
+    setup: function(cnt, html, cfg, done) {
+      var self = this;
+      var deps = this._getDeps(html);
+      var elems;
+      var el;
+
+      cfg = cfg || {};
+
+      requirejs(polyfil.map(deps, function(el) {
+        return el.path;
+      }), function() {
+        var len = arguments.length;
+        var i;
+        var constructor;
+        var className;
+        var data;
+        var target;
+
+        for (i = 0; i < len; i++) {
+          constructor = arguments[i];
+          className = deps[i].name;
+
+          self.component(className, constructor);
+        }
+
+        cnt.innerHTML = html;
+        elems = sizzle(self._config.componentSelector, cnt);
+        len = elems.length;
+
+        for (i = 0; i < len; i++) {
+          el = elems[i];
+          data = polyfil.data(el);
+          constructor = data.type;
+
+          new self._extension.component[constructor](el, cfg);
+        }
+
+        //TODO determine focus
+        if (elems.length) {
+          target = elems[0];
+        } else {
+          //elems[0].focus();
+        }
+
+        self.DOMInstance(target).focus();
+
+        if (typeof done === 'function') {
+          done();
+        }
+      });
+
+      return this;
     },
 
     _saveCurrentState: function(view) {
@@ -315,11 +308,11 @@ define([
       };
     },
 
-    browse: function(newHash, oldHash, done) {
+    _browse: function(newHash, oldHash, done) {
       var data = url.getHashData(newHash);
       var self = this;
 
-      this.extract(data.view, this._container, function() {
+      this.get(data.view, this._container, function() {
         if (oldHash && !self._isGoingBack) {
           self._history.push(oldHash);
         } else {
@@ -328,7 +321,7 @@ define([
 
         //FIXME
         /*
-        trigger('tmpReady', {
+        self.trigger('tmpReady', {
           hash: hash,
           tmp: url.parseHash(hash).tmp,
           container: $el,
@@ -343,18 +336,16 @@ define([
       return this;
     },
 
-    focusNode: function(node) {
-      if (polyfil.isNode(node)) {
-        //ugly but necessary
-        setTimeout(function() {
-          node.focus();
-        }, 0);
+    focus: function(el) {
+      if (typeof el !== 'undefined' &&
+        typeof el.focus === 'function') {
+        el.focus();
       }
 
       return this;
     },
 
-    extract: function(view, cnt, done) {
+    get: function(view, cnt, done) {
       var state = this._states[view];
       var self = this;
 
