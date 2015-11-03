@@ -35,6 +35,12 @@
     config: params,
   });
 
+  if (config.debug) {
+    requirejs.config({
+      urlArgs: 'bust=' + new Date().getTime(),
+    });
+  }
+
   requirejs([
     'hybridatv/core/hbbtv',
     'hybridatv/vendors/analytics',

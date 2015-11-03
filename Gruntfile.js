@@ -189,8 +189,8 @@ module.exports = function(grunt) {
   }
 
   grunt.registerTask('deploy', function() {
-    var dir = grunt.option('dir') || false;
-    var tag = grunt.option('tag') || false;
+    var dir = grunt.option('dir'); 
+    var tag = grunt.option('tag');
     var newVersion = getNextVersion(getVersion(), grunt.option('update'));
     var msg = grunt.option('message') || 'Update to v' + newVersion;
     var tasks = [

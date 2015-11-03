@@ -210,12 +210,8 @@ define([
           over();
         }, over);
       }], function contentLoaded() {
-        self.setup(cnt, html, cfg, done);
+        self.setup(cnt, html, true, cfg, done);
       });
-    },
-
-    DOMInstance: function(el) {
-      return el[settings.domProperty];
     },
 
     _getDeps: function(html) {
@@ -237,7 +233,7 @@ define([
       return deps;
     },
 
-    setup: function(cnt, html, cfg, done) {
+    setup: function(cnt, html, stealFocus, cfg, done) {
       var self = this;
       var deps = this._getDeps(html);
       var elems;
@@ -282,7 +278,9 @@ define([
           //elems[0].focus();
         }
 
-        self._focus(target);
+        if (polyfil.isNode(target) && stealFocus) {
+          self.trigger('focusinit', target);
+        }
 
         if (typeof done === 'function') {
           done();
@@ -290,21 +288,6 @@ define([
       });
 
       return this;
-    },
-
-    _focus: function(el) {
-      var wrapper;
-
-      if (!polyfil.isNode(el)) {
-        return false;
-      }
-
-      wrapper = this.DOMInstance(el);
-
-      if (typeof wrapper !== 'undefined' &&
-      typeof wrapper.focus === 'function') {
-        wrapper.focus();
-      }
     },
 
     _saveCurrentState: function(view) {
@@ -352,15 +335,6 @@ define([
       return this;
     },
 
-    focus: function(el) {
-      if (typeof el !== 'undefined' &&
-        typeof el.focus === 'function') {
-        el.focus();
-      }
-
-      return this;
-    },
-
     get: function(view, cnt, done) {
       var state = this._states[view];
       var self = this;
@@ -368,7 +342,20 @@ define([
       if (typeof state !== 'undefined') {
         // cache
         this._restoreState(cnt, state);
-        this._focus(state.activeElement);
+
+        /*FIXME not sure if this is correct
+        for (elem = state.activeElement; elem && elem !== this._container;
+        elem = elem.parentNode) {
+
+          if (instance) {
+            instance.focus();
+            break;
+          }
+        }
+        */
+
+        //NOTICE state.activeElement is always DOM element
+        this.trigger('focusrestore', state.activeElement);
 
         finish();
       } else {

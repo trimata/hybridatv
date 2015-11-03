@@ -62,6 +62,7 @@ define([], function() {
         return evt;
       },
       /**
+       * TODO rename to setStyle
        */
       css: function(el, data) {
         var prop;
@@ -100,7 +101,7 @@ define([], function() {
       },
       /**
        */
-      stopBubble: function(evt) {
+      cancelBubble: function(evt) {
         evt = evt || window.event;
         if (typeof evt.stopPropagation === 'function') {
           evt.stopPropagation();
@@ -132,6 +133,31 @@ define([], function() {
       } : function(el, key, val) {
         el.setAttribute('data-' + key, val);
       },
+      /**
+       */
+      outerHeight: function(el, addMargins) {
+        var height = parseFloat(el.offsetHeight) || 0;
+
+        if (addMargins) {
+          height += parseFloat(this.getStyle(el, 'marginLeft')) +
+            parseFloat(this.getStyle(el, 'marginRight'));
+        }
+
+        return height;
+      },
+      /**
+       */
+      getStyle: function(el, cssprop) {
+        if (el.currentStyle) {
+          return el.currentStyle[cssprop];
+        } else if (document.defaultView &&
+        document.defaultView.getComputedStyle) {
+          return document.defaultView.getComputedStyle(el, '')[cssprop];
+        } else {
+          return el.style[cssprop];
+        }
+      },
+
       /**
        */
       getData: elem.dataset ? function(el, key) {
