@@ -1,17 +1,17 @@
 define(function() {
   'use strict';
 
-  var media = document.getElementById('media-player');
-  var elemcfg = document.getElementById('oipfcfg');
-  var appmgr = document.getElementById('appmgr');
   var currentKeyset = -1;
+  var media;
+  var elemcfg;
+  var appmgr;
 
-  function initMedia() {
+  function initPlayer(player) {
     try {
-      media.bindToCurrentChannel();
+      player.bindToCurrentChannel();
     } catch (e) {}
     try {
-      media.setFullScreen(false);
+      player.setFullScreen(false);
     } catch (e) {}
   }
 
@@ -66,8 +66,16 @@ define(function() {
   }
 
   return {
+    config: function(cfg) {
+      media = document.getElementById(cfg.player);
+      elemcfg = document.getElementById(cfg.oipfcfg);
+      appmgr = document.getElementById(cfg.appmgr);
+
+      return this;
+    },
+
     bootstrap: function() {
-      initMedia();
+      initPlayer(media);
       initApplication();
       setKeyset(0x0);
     },

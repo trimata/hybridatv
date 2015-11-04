@@ -18,6 +18,7 @@ define([
       this._history = [];
       this._states = {};
       this._handler = {};
+      this._template = {};
 
       this._isGoingBack = false;
       this._isAppRunning = false;
@@ -47,6 +48,8 @@ define([
           self.trigger('keydown', evt);
         }
       };
+
+      this.helper('sizzle', sizzle);
 
       window.addEventListener('hashchange', this._hashchangehandler);
       document.addEventListener('keydown', this._keydownhandler);
@@ -87,6 +90,12 @@ define([
       for (prop in data) {
         this._config[prop] = data[prop];
       }
+
+      return this;
+    },
+
+    template: function(key, html) {
+      this._template[key] = html;
 
       return this;
     },
@@ -210,7 +219,7 @@ define([
           over();
         }, over);
       }], function contentLoaded() {
-        self.setup(cnt, html, true, cfg, done);
+        self.setup(cnt, html, false, cfg, done);
       });
     },
 
@@ -233,12 +242,25 @@ define([
       return deps;
     },
 
+    _parseHTML: function(html) {
+      var self = this;
+
+      return html.replace(settings.templateRegex, function() {
+        return self._template[arguments[1]];
+      });
+    },
+
     setup: function(cnt, html, stealFocus, cfg, done) {
       var self = this;
-      var deps = this._getDeps(html);
+      var deps;
       var elems;
       var el;
 
+      if (this._config.parseHTML) {
+        html = this._parseHTML(html);
+      }
+
+      deps = this._getDeps(html);
       cfg = cfg || {};
 
       requirejs(polyfil.map(deps, function(el) {
@@ -390,8 +412,9 @@ define([
 
       return this;
     },
-
   });
+
+
 
   return HybridaTV;
 });

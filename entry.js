@@ -31,10 +31,11 @@
       widgets  : config.url.widgets,
       modules  : config.url.modules,
     },
-    packages: getModulePaths(config.packages),
+    packages: getModulePaths(config.components),
     config: params,
   });
 
+  //TODO move in previous call
   if (config.debug) {
     requirejs.config({
       urlArgs: 'bust=' + new Date().getTime(),
@@ -45,7 +46,7 @@
     'hybridatv/core/hbbtv',
     'hybridatv/vendors/analytics',
   ], function(hbbtv, analytics) {
-    hbbtv.bootstrap();
+    hbbtv.config(config.hbbtv).bootstrap();
 
     analytics.init(config.url.analytics);
     requirejs([config.url.entry]);

@@ -48,17 +48,24 @@ define([], function() {
           .join('|') + '(\\b|$)', 'gi'), ' ');
       },
       /**
-       * @method initCustomEvent
+       * @method customEvent
        * @param {String} eventName Name of the event
        * @param {Object} params Parameters of the event.
        */
-      initCustomEvent: !!window.CustomEvent ? function(evtName) {
-        return new CustomEvent(evtName, {});
-      } : function(evtName, params) {
+      customEvent: !!window.CustomEvent ? function(evtName, data) {
+        var evt = new CustomEvent(evtName, data.detail);
+
+        evt.__data__ = data.detail;
+
+        return evt;
+      } : function(evtName, data) {
         var evt = document.createEvent('CustomEvent');
 
-        params = params || { bubbles: false, cancelable: false };
-        evt.initCustomEvent(evtName, params.bubbles, params.cancelable, {});
+        data = data || { bubbles: false, cancelabe: false, };
+
+        evt.initCustomEvent(evtName, data.bubbles, data.cancelabe, data.detail);
+        evt.__data__ = data.detail;
+
         return evt;
       },
       /**
@@ -75,6 +82,18 @@ define([], function() {
        */
       getActiveElement: function() {
         return document.activeElement;
+      },
+      /**
+       */
+      each: function(list, fn) {
+        var len = list.length;
+        var i;
+
+        for (i = 0; i < len; i++) {
+          if (fn(list[i]) === false) {
+            break;
+          }
+        }
       },
       /**
        */
