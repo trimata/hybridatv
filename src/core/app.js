@@ -213,11 +213,15 @@ define([
         });
       }, function getConfig(over) {
         //TODO use async.json()
+        cfg = {};
+        over();
+        /*
         async.get(self._config.template.dir + view + '.json',
         function(res) {
           cfg = res ? JSON.parse(res) : {};
           over();
         }, over);
+        */
       }], function contentLoaded() {
         self.setup(cnt, html, false, cfg, done);
       });
@@ -233,6 +237,11 @@ define([
         match = myRegexp.exec(html);
         if (match) {
           data = this._packages[match[1]];
+          /*
+          if (typeof data === 'undefined') {
+            TODO throw load error
+          }
+          */
           data.name = match[1];
           deps.push(data);
         }
@@ -260,6 +269,8 @@ define([
         html = this._parseHTML(html);
       }
 
+      polyfil.addClass(cnt, this._config.loadingClass);
+
       deps = this._getDeps(html);
       cfg = cfg || {};
 
@@ -280,7 +291,9 @@ define([
           self.component(className, constructor);
         }
 
+        polyfil.removeClass(cnt, self._config.loadingClass);
         cnt.innerHTML = html;
+
         elems = sizzle(self._config.componentSelector, cnt);
         len = elems.length;
 
@@ -303,6 +316,7 @@ define([
         if (polyfil.isNode(target) && stealFocus) {
           self.trigger('focusinit', target);
         }
+
 
         if (typeof done === 'function') {
           done();
@@ -376,7 +390,6 @@ define([
         }
         */
 
-        //NOTICE state.activeElement is always DOM element
         this.trigger('focusrestore', state.activeElement);
 
         finish();

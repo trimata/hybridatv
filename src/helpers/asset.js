@@ -20,7 +20,7 @@ define([
       polyfil.extend(cssNode, {
         type: 'text/css',
         rel: 'stylesheet',
-        href: url.path(fileName + '.css'),
+        href: url.path(fileName),
       });
 
       head.appendChild(cssNode);

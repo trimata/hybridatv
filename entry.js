@@ -3,11 +3,10 @@
 
   var _config = window.HYBRIDATV_CONFIG,
       params  = {},
+      data,
       config;
 
-  if (typeof _config !== 'function') {
-    return;
-  }
+  if (typeof _config !== 'function') { return; }
 
   function getModulePaths(packages) {
     var result = [];
@@ -24,23 +23,23 @@
   config = _config();
   params[config.url.entry] = config;
 
-  requirejs.config({
+  data = {
     baseUrl: '.',
     paths: {
-      hybridatv: config.url.framework,
-      widgets  : config.url.widgets,
-      modules  : config.url.modules,
+      hybridatv : config.url.framework,
+      widgets   : config.url.widgets,
+      modules   : config.url.modules,
+      plugins   : config.url.plugins,
     },
     packages: getModulePaths(config.components),
     config: params,
-  });
+  };
 
-  //TODO move in previous call
   if (config.debug) {
-    requirejs.config({
-      urlArgs: 'bust=' + new Date().getTime(),
-    });
+    data.urlArgs = 'bust=' + new Date().getTime();
   }
+
+  requirejs.config(data);
 
   requirejs([
     'hybridatv/core/hbbtv',
