@@ -52,19 +52,18 @@ define([], function() {
        * @param {String} eventName Name of the event
        * @param {Object} params Parameters of the event.
        */
-      customEvent: !!window.CustomEvent ? function(evtName, data) {
-        var evt = new CustomEvent(evtName, data.detail);
+      customEvent: typeof window.CustomEvent === 'function' ?
+        function(evtName, data) {
+        var evt = new CustomEvent(evtName, {});
 
-        evt.__data__ = data.detail;
+        evt.__data__ = data;
 
         return evt;
       } : function(evtName, data) {
         var evt = document.createEvent('CustomEvent');
 
-        data = data || { bubbles: false, cancelabe: false, };
-
-        evt.initCustomEvent(evtName, data.bubbles, data.cancelabe, data.detail);
-        evt.__data__ = data.detail;
+        evt.initCustomEvent(evtName, false, false, {});
+        evt.__data__ = data;
 
         return evt;
       },

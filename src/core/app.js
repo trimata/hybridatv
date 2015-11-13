@@ -223,7 +223,7 @@ define([
         }, over);
         */
       }], function contentLoaded() {
-        self.setup(cnt, html, false, cfg, done);
+        self._parseHTML(cnt, html, false, cfg, done);
       });
     },
 
@@ -237,11 +237,9 @@ define([
         match = myRegexp.exec(html);
         if (match) {
           data = this._packages[match[1]];
-          /*
           if (typeof data === 'undefined') {
-            TODO throw load error
+            console.log(match[1]);
           }
-          */
           data.name = match[1];
           deps.push(data);
         }
@@ -251,7 +249,7 @@ define([
       return deps;
     },
 
-    _parseHTML: function(html) {
+    _parseTemplate: function(html) {
       var self = this;
 
       return html.replace(settings.templateRegex, function() {
@@ -259,14 +257,38 @@ define([
       });
     },
 
-    setup: function(cnt, html, stealFocus, cfg, done) {
+    parseAsync: function(cnt, callback, done) {
+      var self = this;
+
+      cnt.innerHTML = '';
+      polyfil.addClass(cnt, this._config.loadingClass);
+
+      callback(function(html) {
+        self.parse(cnt, html, done);
+      });
+    },
+
+    parse: function(cnt, html, stealFocus, cfg, done) {
+      if (arguments.length < 4) {
+        done = stealFocus;
+        cfg = {};
+        stealFocus = false;
+      } else if (arguments.length < 5) {
+        done = cfg;
+        cfg = {};
+      }
+
+      this._parseHTML(cnt, html, stealFocus, cfg, done);
+    },
+
+    _parseHTML: function(cnt, html, stealFocus, cfg, done) {
       var self = this;
       var deps;
       var elems;
       var el;
 
       if (this._config.parseHTML) {
-        html = this._parseHTML(html);
+        html = this._parseTemplate(html);
       }
 
       polyfil.addClass(cnt, this._config.loadingClass);
@@ -306,17 +328,19 @@ define([
         }
 
         //TODO determine focus
-        if (elems.length) {
-          target = elems[0];
-        } else {
-          target = null;
-          //elems[0].focus();
-        }
 
-        if (polyfil.isNode(target) && stealFocus) {
+        if (stealFocus) {
+          if (len) {
+            target = elems[0];
+          } else {
+            target = cnt;
+            //elems[0].focus();
+          }
+
           self.trigger('focusinit', target);
         }
 
+        self.trigger('contentchange', cnt);
 
         if (typeof done === 'function') {
           done();
@@ -341,6 +365,12 @@ define([
         activeElement: activeElement,
         elems: elems,
       };
+    },
+
+    resetHistory: function() {
+      this._history = [];
+
+      return this;
     },
 
     _browse: function(newHash, oldHash, done) {
