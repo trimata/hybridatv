@@ -42,9 +42,20 @@ define([
     },
 
     getHashData: function(hash) {
-      //TODO in future
+      var s = hash.split('/');
+      var params = {};
+      var len = s.length;
+      var i;
+      var p;
+
+      for (i = 1; i < len; i++) {
+        p = s[i].split(':');
+        params[p[0]] = p[1];
+      }
+
       return {
-        view: hash,
+        view: s[0],
+        params: params,
       };
     },
 
@@ -61,31 +72,6 @@ define([
         }
       }
       return result;
-    },
-
-    parseHash: function(str) {
-      var data = { params: {}, view: '', };
-      var segments;
-      var len;
-      var pieces;
-      var i;
-
-      if (typeof str !== 'string') {
-        str = window.location.hash;
-      }
-
-      segments = str.split('/');
-      len = segments.length;
-
-      for (i = 2; i < len; i++) {
-        pieces = segments[i].split(':');
-
-        data.params[pieces[0]] = pieces[1];
-      }
-
-      data.tmp = segments[1];
-
-      return data;
     },
 
     path: function(path) {

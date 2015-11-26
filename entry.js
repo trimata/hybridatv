@@ -30,6 +30,7 @@
       widgets   : config.url.widgets,
       modules   : config.url.modules,
       plugins   : config.url.plugins,
+      vendors   : config.url.vendors,
     },
     packages: getModulePaths(config.components),
     config: params,

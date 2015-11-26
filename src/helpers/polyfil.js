@@ -102,7 +102,7 @@ define([], function() {
         var i;
 
         for (i = 0; i < len; i++) {
-          result[i] = fn(list[i]);
+          result[i] = fn(list[i], i);
         }
         return result;
       },

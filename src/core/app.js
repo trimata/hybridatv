@@ -19,6 +19,7 @@ define([
       this._states = {};
       this._handler = {};
       this._template = {};
+      this._hashParams = {};
 
       this._isGoingBack = false;
       this._isAppRunning = false;
@@ -101,7 +102,7 @@ define([
     },
 
     run: function() {
-      var data = url.getHashData(window.location.hash.slice(1));
+      var hash = window.location.hash.slice(1);
       var self = this;
 
       this.trigger('beforerun');
@@ -112,11 +113,12 @@ define([
       this._isAppRunning = true;
       // TODO handle missing container scenario
 
-      if (data.view.length) {
-        this.get(data.view, this._container, function() {
+      if (hash) {
+        this._browse(hash, '', function() {
           self.trigger('initialviewready');
         });
       } else {
+        //change URL
         this.navigate(this._config.defaultView);
       }
 
@@ -125,10 +127,19 @@ define([
       return this;
     },
 
-    navigate: function(hash) {
+    navigate: function(hash, params) {
       //TODO add success and error callbacks
+      //
+      var _location = hash;
+      var data;
 
-      window.location.hash = hash;
+      params = params || {};
+
+      for (data in params) {
+        _location += '/' + data + ':' + params[data];
+      }
+
+      window.location.hash = _location;
 
       return this;
     },
@@ -237,9 +248,8 @@ define([
         match = myRegexp.exec(html);
         if (match) {
           data = this._packages[match[1]];
-          if (typeof data === 'undefined') {
-            console.log(match[1]);
-          }
+          //if (typeof data === 'undefined') {
+          //}
           data.name = match[1];
           deps.push(data);
         }
@@ -257,17 +267,6 @@ define([
       });
     },
 
-    parseAsync: function(cnt, callback, done) {
-      var self = this;
-
-      cnt.innerHTML = '';
-      polyfil.addClass(cnt, this._config.loadingClass);
-
-      callback(function(html) {
-        self.parse(cnt, html, done);
-      });
-    },
-
     parse: function(cnt, html, stealFocus, cfg, done) {
       if (arguments.length < 4) {
         done = stealFocus;
@@ -279,6 +278,26 @@ define([
       }
 
       this._parseHTML(cnt, html, stealFocus, cfg, done);
+    },
+
+    parseAsync: function(cnt, fn, stealFocus, cfg, done) {
+      var self = this;
+
+      if (arguments.length < 4) {
+        done = stealFocus;
+        cfg = {};
+        stealFocus = false;
+      } else if (arguments.length < 5) {
+        done = cfg;
+        cfg = {};
+      }
+
+      cnt.innerHTML = '';
+      polyfil.addClass(cnt, this._config.loadingClass);
+
+      fn(function(html) {
+        self._parseHTML(cnt, html, stealFocus, cfg, done);
+      });
     },
 
     _parseHTML: function(cnt, html, stealFocus, cfg, done) {
@@ -334,7 +353,6 @@ define([
             target = elems[0];
           } else {
             target = cnt;
-            //elems[0].focus();
           }
 
           self.trigger('focusinit', target);
@@ -350,10 +368,11 @@ define([
       return this;
     },
 
-    _saveCurrentState: function(view) {
+    _saveCurrentState: function(hash) {
       var activeElement = polyfil.getActiveElement();
       var elems = [];
       var len = this._container.children.length;
+      var view = url.getHashData(hash).view;
       var i;
 
       for (i = 0; i < len; i++) {
@@ -373,25 +392,19 @@ define([
       return this;
     },
 
+    hashParams: function() {
+      return this._hashParams;
+    },
+
     _browse: function(newHash, oldHash, done) {
-      var data = url.getHashData(newHash);
       var self = this;
 
-      this.get(data.view, this._container, function() {
+      this.get(newHash, this._container, function() {
         if (oldHash && !self._isGoingBack) {
           self._history.push(oldHash);
         } else {
           self._isGoingBack = false;
         }
-
-        //FIXME
-        /*
-        self.trigger('tmpReady', {
-          hash: hash,
-          tmp: url.parseHash(hash).tmp,
-          container: $el,
-        });
-        */
 
         if (typeof done === 'function') {
           done();
@@ -401,36 +414,24 @@ define([
       return this;
     },
 
-    get: function(view, cnt, done) {
-      var state = this._states[view];
+    get: function(hash, cnt, done) {
       var self = this;
+      var data = url.getHashData(hash);
+      var state = this._states[data.view];
 
       if (typeof state !== 'undefined') {
         // cache
         this._restoreState(cnt, state);
 
-        /*FIXME not sure if this is correct
-        for (elem = state.activeElement; elem && elem !== this._container;
-        elem = elem.parentNode) {
-
-          if (instance) {
-            instance.focus();
-            break;
-          }
-        }
-        */
-
         this.trigger('focusrestore', state.activeElement);
 
         finish();
       } else {
-        this._loadNewContent(view, cnt, finish);
+        this._loadNewContent(data.view, cnt, finish);
       }
 
       function finish() {
-        self.trigger('viewchange', {
-          view: view,
-        });
+        self.trigger('viewchange', data);
 
         if (typeof done === 'function') {
           done();
