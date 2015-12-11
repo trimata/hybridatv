@@ -1,7 +1,7 @@
 define(function() {
   'use strict';
 
-  var currentKeyset = -1;
+  var currentKeyset = null;
   var media;
   var elemcfg;
   var appmgr;

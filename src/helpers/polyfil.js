@@ -79,8 +79,15 @@ define([], function() {
       },
       /**
        */
-      getActiveElement: function() {
-        return document.activeElement;
+      getActiveElement: function(className) {
+        var el = document.activeElement;
+        if (this.isNode(el)) {
+          return el;
+        }
+
+        el = document.getElementsByClassName(className);
+
+        return el[0];
       },
       /**
        */
@@ -89,7 +96,7 @@ define([], function() {
         var i;
 
         for (i = 0; i < len; i++) {
-          if (fn(list[i]) === false) {
+          if (fn(list[i], i) === false) {
             break;
           }
         }
@@ -153,12 +160,25 @@ define([], function() {
       },
       /**
        */
+      outerWidth: function(el, addMargins) {
+        var width = parseFloat(el.offsetWidth) || 0;
+        console.log(width);
+
+        if (addMargins) {
+          width += parseFloat(this.getStyle(el, 'marginLeft')) +
+            parseFloat(this.getStyle(el, 'marginRight'));
+        }
+
+        return width;
+      },
+      /**
+       */
       outerHeight: function(el, addMargins) {
         var height = parseFloat(el.offsetHeight) || 0;
 
         if (addMargins) {
-          height += parseFloat(this.getStyle(el, 'marginLeft')) +
-            parseFloat(this.getStyle(el, 'marginRight'));
+          height += parseFloat(this.getStyle(el, 'marginTop')) +
+            parseFloat(this.getStyle(el, 'marginBottom'));
         }
 
         return height;
@@ -197,6 +217,27 @@ define([], function() {
         out = out || {};
 
         for (i = 1; i < arguments.length; i++) {
+          if (!arguments[i]) {
+            continue;
+          }
+
+          for (key in arguments[i]) {
+            if (arguments[i].hasOwnProperty(key)) {
+              out[key] = arguments[i][key];
+            }
+          }
+        }
+
+        return out;
+      },
+
+      _extend: function() {
+        var out = {};
+        var len = arguments.length;
+        var i;
+        var key;
+
+        for (i = 0; i < len; i++) {
           if (!arguments[i]) {
             continue;
           }

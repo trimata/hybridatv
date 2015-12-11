@@ -14,7 +14,7 @@ define([
       var self = this;
 
       this._config = config;
-      this._packages = packages;
+      this._packages = config.packages || packages;
       this._history = [];
       this._states = {};
       this._handler = {};
@@ -55,6 +55,8 @@ define([
       window.addEventListener('hashchange', this._hashchangehandler);
       document.addEventListener('keydown', this._keydownhandler);
     },
+
+    custom: {},
 
     destroy: function() {
       window.removeEventListener('hashchange', this._hashchangehandler);
@@ -118,7 +120,7 @@ define([
           self.trigger('initialviewready');
         });
       } else {
-        //change URL
+        //redirect
         this.navigate(this._config.defaultView);
       }
 
@@ -172,12 +174,14 @@ define([
 
     goBack: function() {
       //TODO check out history.back
-      var lastPage = this._history.pop();
+      var lastPage;
 
-      if (!lastPage) {
+      if (!this._history.length) {
         this.trigger('historyempty');
         return false;
       }
+
+      lastPage = this._history.pop();
 
       this._isGoingBack = true;
 
@@ -207,8 +211,6 @@ define([
 
       return this;
     },
-
-    exit: function() {},
 
     _loadNewContent: function(view, cnt, done) {
       var self = this;
@@ -267,19 +269,16 @@ define([
       });
     },
 
-    parse: function(cnt, html, stealFocus, cfg, done) {
-      if (arguments.length < 4) {
-        done = stealFocus;
-        cfg = {};
-        stealFocus = false;
-      } else if (arguments.length < 5) {
-        done = cfg;
-        cfg = {};
-      }
+    //FIXME
+    //will be deprecated
+    parse: function(cnt, html, stealFocus, cfg) {
+      cfg = cfg || {};
+      stealFocus = stealFocus || false;
 
-      this._parseHTML(cnt, html, stealFocus, cfg, done);
+      this._parseHTML(cnt, html, stealFocus, cfg);
     },
 
+    //rename to render
     parseAsync: function(cnt, fn, stealFocus, cfg, done) {
       var self = this;
 
@@ -295,9 +294,15 @@ define([
       cnt.innerHTML = '';
       polyfil.addClass(cnt, this._config.loadingClass);
 
-      fn(function(html) {
-        self._parseHTML(cnt, html, stealFocus, cfg, done);
-      });
+      if (typeof fn === 'string') {
+        this._parseHTML(cnt, fn, stealFocus, cfg, done);
+      } else {
+        fn(function(html) {
+          self._parseHTML(cnt, html, stealFocus, cfg, done);
+        });
+      }
+
+      return this;
     },
 
     _parseHTML: function(cnt, html, stealFocus, cfg, done) {
@@ -359,6 +364,7 @@ define([
         }
 
         self.trigger('contentchange', cnt);
+        self.trigger('newcontentadded', cnt);
 
         if (typeof done === 'function') {
           done();
@@ -369,7 +375,7 @@ define([
     },
 
     _saveCurrentState: function(hash) {
-      var activeElement = polyfil.getActiveElement();
+      var activeElement = polyfil.getActiveElement(this._config.focusClass);
       var elems = [];
       var len = this._container.children.length;
       var view = url.getHashData(hash).view;
@@ -393,7 +399,8 @@ define([
     },
 
     hashParams: function() {
-      return this._hashParams;
+      //TODO
+      //return this._hashParams;
     },
 
     _browse: function(newHash, oldHash, done) {
@@ -432,6 +439,7 @@ define([
 
       function finish() {
         self.trigger('viewchange', data);
+        self.trigger('containerhtmlchange', cnt);
 
         if (typeof done === 'function') {
           done();

@@ -1,6 +1,6 @@
 {
   "name": "hybridatv",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "the way to hbbtv",
   "main": "entry.js",
   "directories": {
@@ -34,7 +34,7 @@
     "karma-jasmine": "^0.3.6",
     "karma-phantomjs-launcher": "^0.2.1",
     "karma-requirejs": "^0.2.2",
-    "phantomjs": "^1.9.18",
+    "phantomjs": "~1.9.19",
     "requirejs": "^2.1.20"
   }
 }
